@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.la": "haskell",
+        "*.glsl": "c",
+        "assert.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "string.h": "c"
+    }
+}
