@@ -227,6 +227,24 @@ void print_movies_by_highest_rated_per_year(struct movie_list_t * head) {
     }
 }
 
+void print_movies_in_language(struct movie_list_t * head, char* language) {
+    int printed_movies = 0;
+    while (head != NULL) {
+        assert(head->movie != NULL);
+        for (int i = 0; i < 5; i++) {
+            if (strcmp(head->movie->languages[i], language) == 0) {
+                printf("%d %s\n", head->movie->year, head->movie->title);
+                printed_movies++;
+                break;
+            }
+        }
+        head = head->next;
+    }
+    if (printed_movies == 0) {
+        printf("No movies in %s.\n", language);
+    }
+}
+
 void menu_loop(struct movie_list_t * head) {
     
     printf("1. Show movies released in the specified year\n");
@@ -239,7 +257,7 @@ void menu_loop(struct movie_list_t * head) {
     scanf("%d", &choice);
 
     if (choice < 1 || choice > 4) {
-        printf("\nInvalid choice. Try again.\n");
+        printf("\nInvalid choice. Try again.\n\n");
         menu_loop(head);
         return;
     }
@@ -265,7 +283,19 @@ void menu_loop(struct movie_list_t * head) {
         menu_loop(head);
         return;
     }
+
+    if (choice == 3) {
+        printf("Enter a language: ");
+        char language[20];
+        scanf("%s", language);
+        print_movies_in_language(head, language);
+        printf("\n");
+        menu_loop(head);
+        return;
+    }
 }
+
+
 
 int main(int argc, char** argv) {
 
