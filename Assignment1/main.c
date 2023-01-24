@@ -164,7 +164,108 @@ struct movie_t construct_movie(char* line) {
     return movie;
 }
 
+int list_length(struct movie_list_t * head) {
+    int i = 0;
+    while (head != NULL) {
+        i++;
+        head = head->next;
+    }
+    return i;
+}
 
+void print_movies_by_year(struct movie_list_t * head, int year) {
+    int printed_movies = 0;
+    while (head != NULL) {
+        assert(head->movie != NULL);
+        if (head->movie->year == year) {
+            printf("%s\n", head->movie->title);
+            printed_movies++;
+        }
+        head = head->next;
+    }
+    if (printed_movies == 0) {
+        printf("No data about movies released in the year %d\n", year);
+    }
+}
+
+int highest_rated_in_year(struct movie_list_t * head, int year) {
+    int highest_rated = 0;
+    int i = 0;
+    int highest_rated_idx = 0;
+    while (head != NULL) {
+        assert(head->movie != NULL);
+        if (head->movie->year == year) {
+            if (head->movie->rating > highest_rated) {
+                highest_rated = head->movie->rating;
+                highest_rated_idx = i;
+            }
+        }
+        i++;
+        head = head->next;
+    }
+    // return highest_rated;
+    return highest_rated_idx;
+}
+
+void print_movies_by_highest_rated_per_year(struct movie_list_t * head) {
+    struct movie_list_t * current = head;
+    int printed_movies = 0;
+    int i = 0;
+    while (current != NULL) {
+        assert(current->movie != NULL);
+        int year = current->movie->year;
+        int highest_rated_idx = highest_rated_in_year(head, year);
+        if (i == highest_rated_idx) {
+            printf("%d %.1f %s\n", current->movie->year, current->movie->rating, current->movie->title);
+            printed_movies++;
+        }
+        i++;
+        current = current->next;
+    }
+    if (printed_movies == 0) {
+        printf("No movies present.\n");
+    }
+}
+
+void menu_loop(struct movie_list_t * head) {
+    
+    printf("1. Show movies released in the specified year\n");
+    printf("2. Show highest rated movie for each year\n");
+    printf("3. Show the title and year of release of all movies in a specific language\n");
+    printf("4. Exit from the program\n");
+
+    int choice = 0;
+    printf("\nEnter your choice: ");
+    scanf("%d", &choice);
+
+    if (choice < 1 || choice > 4) {
+        printf("\nInvalid choice. Try again.\n");
+        menu_loop(head);
+        return;
+    }
+
+    if (choice == 4) {
+        printf("\nGoodbye.\n");
+        return;
+    }
+
+    if (choice == 1) {
+        printf("Enter a year: ");
+        int year = 0;
+        scanf("%d", &year);
+        print_movies_by_year(head, year);
+        printf("\n");
+        menu_loop(head);
+        return;
+    }
+
+    if (choice == 2) {
+        print_movies_by_highest_rated_per_year(head);
+        printf("\n");
+        menu_loop(head);
+        return;
+    }
+}
 
 int main(int argc, char** argv) {
 
@@ -202,8 +303,19 @@ int main(int argc, char** argv) {
     }
     free(line);
     fclose(file);
+    
+    if (head->next != NULL) {
+        head = head->next;
+    } else {
+        printf("No movies present.\n");
+        return 0;
+    }
 
     print_movie_list(head);
+    int movie_count = list_length(head);
+    printf("Processed file %s and parsed data for %d movies.\n", file_name, movie_count);
+
+    menu_loop(head);
 
     return 0;
 }
