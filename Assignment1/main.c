@@ -85,27 +85,6 @@ char** tokenize(char* line, char* delim, int * length) {
     }
     *length = i;
 
-    // int i = 0;
-    // char* _rest = NULL;
-    // token = strtok(line, delim);
-    // while (token != NULL) {
-    //     // printf("%d ) token: %s\n", i, token);
-    //     int token_length = strlen(token);
-    //     tokens[i] = token;// malloc((token_length + 1) * sizeof(char));
-    //     // assert(new_token != NULL);
-    //     // memset(token, '\0', token_length);
-    //     // strcpy(tokens[i],token);
-    //     // strncpy(new_token, token,token_length);
-    //     printf("%d ) token: %s\n", i, tokens[i]);
-
-    //     // tokens[i] = new_token;
-
-    //     i++;
-    //     token = strtok(NULL, delim);
-    // }
-    // // assert(i == num);
-    // *length = num;
-
     return tokens;
 }
 
@@ -120,7 +99,18 @@ void print_movie(struct movie_t * movie) {
         if (movie->languages[i][0] == 0) { continue; }
         printf("%s %s ", (i > 0 ? "," : ""), movie->languages[i]);
     }
-    printf("]\n");
+    printf("] }\n");
+}
+
+void print_movie_list(struct movie_list_t * head) {
+    int i = 0;
+    while (head != NULL) {
+        assert(head->movie != NULL);
+        printf("[%d] ",i);
+        print_movie(head->movie);
+        i++;
+        head = head->next;
+    }
 }
 
 void populate_languages(char * lang_str, struct movie_t * movie /* char (*languages)[5][20]*/) {
@@ -159,20 +149,22 @@ struct movie_t construct_movie(char* line) {
     int num_tokens;
     char** tokens = tokenize(line, ",", &num_tokens);
 
-    for (int i = 0; i < num_tokens; i++) {
-        printf("%d ] token: %s \n", i, tokens[i]);
-    }
-
+    // for (int i = 0; i < num_tokens; i++) {
+    //     printf("%d ] token: %s \n", i, tokens[i]);
+    // }
 
     movie.title = tokens[0];
     movie.year = (int) atof(tokens[1]);
     populate_languages(tokens[2], &movie);
     movie.rating = atof(tokens[3]);
 
-    print_movie(&movie);
+    // print_movie(&movie);
+    free(tokens);
 
     return movie;
 }
+
+
 
 int main(int argc, char** argv) {
 
@@ -200,7 +192,7 @@ int main(int argc, char** argv) {
     while (getline(&line, &line_length, file) != -1) {
         // line_length = strlen(line);
         line[strcspn(line, "\r\n")] = 0;
-        printf("(length %d) '%s'\n", line_length, line);
+        // printf("(length %d) '%s'\n", line_length, line);
 
         struct movie_t movie = construct_movie(line);
         head = append(head,movie);
@@ -210,6 +202,8 @@ int main(int argc, char** argv) {
     }
     free(line);
     fclose(file);
+
+    print_movie_list(head);
 
     return 0;
 }
