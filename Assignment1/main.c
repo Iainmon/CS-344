@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 
+// Movie struct that holds the data for a movie
 struct movie_t {
     char* title;
     int year;
@@ -11,13 +12,16 @@ struct movie_t {
     float rating;
 };
 
+// Linked list of movies
 struct movie_list_t {
     struct movie_t * movie;
     struct movie_list_t * next;
 };
 
+// Returns the tail of the list
 struct movie_list_t * get_last(struct movie_list_t * ml) {
     struct movie_list_t * curr = ml;
+    // If the list is empty, create a new node
     if (curr == NULL) {
         curr = malloc(sizeof(struct movie_list_t));
         assert(curr != NULL);
@@ -25,57 +29,66 @@ struct movie_list_t * get_last(struct movie_list_t * ml) {
         curr->next = NULL;
         return curr;
     }
+    // Otherwise, iterate to the end of the list
     while (curr->next != NULL) {
         curr = curr->next;
     }
+    // Return the last node
     curr->next = NULL;
     return curr;
 }
 
+// Appends a movie to the end of the list
 struct movie_list_t * append(struct movie_list_t * ml, struct movie_t m) {
-
+    // Get the last node in the list
     struct movie_list_t * head = ml;
     struct movie_list_t * last = get_last(head);
     assert(last != NULL);
     struct movie_list_t * fresh = get_last(NULL); // Creates a blank list node
     assert(fresh != NULL);
 
+    // Append the new node to the end of the list
     last->next = fresh;
 
+    // If the list is empty, set the head to the new node
     if (last->movie == NULL) {
         free(last);
         head = fresh;
     }
 
+    // Copy the movie data into the new node
     struct movie_t * movie = malloc(sizeof(struct movie_t));
     assert(movie != NULL);
     *movie = m;
-    // movie->title = NULL;
     movie->title = malloc(strlen(m.title) + 1);
     strcpy(movie->title, m.title);
     
+    // Set the new node's movie pointer to the new movie
     fresh->movie = movie;
     return head;
 }
 
-
+// Helper function that splits a string by a delimiter and returns an array of tokens
 char** tokenize(char* line, char* delim, int * length) {
 
     int num = 0;
-    
+    // Copy string so that strtok_r doesn't modify the original
     char* rest = NULL;
     char* token;
     char* line_ = calloc(strlen(line) + 1,sizeof(char));
     strcpy(line_,line);
 
+    // Count the number of tokens
     token = strtok_r(line_, delim, &rest);
     while (token != NULL) {
         num++;
         token = strtok_r(NULL, delim, &rest);
     }
 
+    // Allocate memory for the tokens
     char** tokens = malloc(sizeof(char) * (num + 1));
 
+    // Copy the tokens into the array
     int i = 0;
     token = strtok(line, delim);
     while (i < num) {
@@ -83,11 +96,13 @@ char** tokenize(char* line, char* delim, int * length) {
         token = strtok(NULL,delim);
         i++;
     }
+    // Set the length pointer to the number of tokens
     *length = i;
 
     return tokens;
 }
 
+// Helper function that prints a movie (for debugging)
 void print_movie(struct movie_t * movie) {
     printf(
         "movie { title = '%s', year = %d, rating = %.1f, languages = ",
@@ -95,13 +110,14 @@ void print_movie(struct movie_t * movie) {
         movie->year,
         movie->rating);
     printf("[");
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) { // Print the languages
         if (movie->languages[i][0] == 0) { continue; }
         printf("%s %s ", (i > 0 ? "," : ""), movie->languages[i]);
     }
     printf("] }\n");
 }
 
+// Helper function that prints a list of movies (for debugging)
 void print_movie_list(struct movie_list_t * head) {
     int i = 0;
     while (head != NULL) {
@@ -113,11 +129,13 @@ void print_movie_list(struct movie_list_t * head) {
     }
 }
 
+// Helper function that populates the languages array in a movie struct
 void populate_languages(char * lang_str, struct movie_t * movie /* char (*languages)[5][20]*/) {
     int length = strlen(lang_str);
     int num = 0;
     int i = 0;
     int j = 0;
+    // Iterate through the string and populate the languages array via a simple state machine
     while (i < length) {
         char c = lang_str[i];
         if (c == '[' || c == ']') { i++; continue; }
@@ -134,12 +152,12 @@ void populate_languages(char * lang_str, struct movie_t * movie /* char (*langua
 }
 
 
-
+// Helper function that constructs a movie struct from a line of CSV data
 struct movie_t construct_movie(char* line) {
 
-    // struct movie_t* movie = malloc(sizeof(struct movie_t));
     struct movie_t movie;
 
+    // Initialize the languages array
     for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 20; j++) {
             movie.languages[i][j] = 0;
@@ -149,21 +167,19 @@ struct movie_t construct_movie(char* line) {
     int num_tokens;
     char** tokens = tokenize(line, ",", &num_tokens);
 
-    // for (int i = 0; i < num_tokens; i++) {
-    //     printf("%d ] token: %s \n", i, tokens[i]);
-    // }
-
+    // Populate the movie struct
     movie.title = tokens[0];
     movie.year = (int) atof(tokens[1]);
     populate_languages(tokens[2], &movie);
     movie.rating = atof(tokens[3]);
 
-    // print_movie(&movie);
+    // Free the tokens array
     free(tokens);
 
     return movie;
 }
 
+// Helper function that returns the length of a linked list
 int list_length(struct movie_list_t * head) {
     int i = 0;
     while (head != NULL) {
