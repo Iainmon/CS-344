@@ -189,29 +189,36 @@ int list_length(struct movie_list_t * head) {
     return i;
 }
 
+// Routine that prints the titles of all movies released in a given year
 void print_movies_by_year(struct movie_list_t * head, int year) {
     int printed_movies = 0;
     while (head != NULL) {
+        // Make sure the movie pointer is not NULL
         assert(head->movie != NULL);
+        // Print the movie title if the year matches
         if (head->movie->year == year) {
             printf("%s\n", head->movie->title);
             printed_movies++;
         }
         head = head->next;
     }
+    // Print a message if no movies were found
     if (printed_movies == 0) {
         printf("No data about movies released in the year %d\n", year);
     }
 }
 
+// Helper function that returns the index of the highest rated movie in a given year
 int highest_rated_in_year(struct movie_list_t * head, int year) {
     int highest_rated = 0;
     int i = 0;
     int highest_rated_idx = 0;
+    // Iterate through the list and find the highest rated movie in the given year
     while (head != NULL) {
         assert(head->movie != NULL);
         if (head->movie->year == year) {
             if (head->movie->rating > highest_rated) {
+                // If the movie's rating is higher than the current highest rated movie, update the highest rated movie
                 highest_rated = head->movie->rating;
                 highest_rated_idx = i;
             }
@@ -219,18 +226,25 @@ int highest_rated_in_year(struct movie_list_t * head, int year) {
         i++;
         head = head->next;
     }
-    // return highest_rated;
+    // Return the index of the highest rated movie
     return highest_rated_idx;
 }
 
+// Routine that prints the titles of the highest rated movie in each year
 void print_movies_by_highest_rated_per_year(struct movie_list_t * head) {
     struct movie_list_t * current = head;
     int printed_movies = 0;
     int i = 0;
+    // Iterate through the list and print the highest rated movie in each year
     while (current != NULL) {
+        // Make sure the movie pointer is not NULL
         assert(current->movie != NULL);
+
+        // Get the year of the current movie
         int year = current->movie->year;
         int highest_rated_idx = highest_rated_in_year(head, year);
+
+        // Print the movie if it is the highest rated movie in the given year
         if (i == highest_rated_idx) {
             printf("%d %.1f %s\n", current->movie->year, current->movie->rating, current->movie->title);
             printed_movies++;
@@ -238,16 +252,23 @@ void print_movies_by_highest_rated_per_year(struct movie_list_t * head) {
         i++;
         current = current->next;
     }
+    // Print a message if no movies were found
     if (printed_movies == 0) {
         printf("No movies present.\n");
     }
 }
 
+// Routine that prints the titles of all movies in a given language
 void print_movies_in_language(struct movie_list_t * head, char* language) {
+    // Iterate through the list
     int printed_movies = 0;
     while (head != NULL) {
+        // Make sure the movie pointer is not NULL
         assert(head->movie != NULL);
+
+        // Iterate through the languages array
         for (int i = 0; i < 5; i++) {
+            // Print the movie if the language matches
             if (strcmp(head->movie->languages[i], language) == 0) {
                 printf("%d %s\n", head->movie->year, head->movie->title);
                 printed_movies++;
@@ -256,6 +277,7 @@ void print_movies_in_language(struct movie_list_t * head, char* language) {
         }
         head = head->next;
     }
+    // Print a message if no movies were found
     if (printed_movies == 0) {
         printf("No movies in %s.\n", language);
     }
@@ -263,25 +285,31 @@ void print_movies_in_language(struct movie_list_t * head, char* language) {
 
 void menu_loop(struct movie_list_t * head) {
     
+    // Print the menu
     printf("1. Show movies released in the specified year\n");
     printf("2. Show highest rated movie for each year\n");
     printf("3. Show the title and year of release of all movies in a specific language\n");
     printf("4. Exit from the program\n");
 
+    // Get the user's choice
     int choice = 0;
     printf("\nEnter your choice: ");
     scanf("%d", &choice);
 
+    // Validate the user's choice, if invalid, print an error message and call the menu loop again
     if (choice < 1 || choice > 4) {
         printf("\nInvalid choice. Try again.\n\n");
         menu_loop(head);
         return;
     }
 
+    // Exit the program if the user chooses to
     if (choice == 4) {
         printf("\nGoodbye.\n");
         return;
     }
+
+    // Print the movies based on the user's choice
 
     if (choice == 1) {
         printf("Enter a year: ");
@@ -315,13 +343,12 @@ void menu_loop(struct movie_list_t * head) {
 
 int main(int argc, char** argv) {
 
-    printf("Hello.\n");
-
+    // Handle command line arguments
     if (argc < 2) {
         printf("Error: Missing file argument\n");
         return 1;
     }
-
+    
     char* file_name = argv[1];
 
     // Open the file
@@ -336,20 +363,16 @@ int main(int argc, char** argv) {
 
     struct movie_list_t * head = NULL;
 
+    // Read the file line by line
     while (getline(&line, &line_length, file) != -1) {
-        // line_length = strlen(line);
-        line[strcspn(line, "\r\n")] = 0;
-        // printf("(length %d) '%s'\n", line_length, line);
-
-        struct movie_t movie = construct_movie(line);
-        head = append(head,movie);
-        // if (movie.title != NULL) { free(movie.title); }
-
-        // free(line);
+        line[strcspn(line, "\r\n")] = 0;              // Remove the newline character
+        struct movie_t movie = construct_movie(line); // Construct a movie from the line
+        head = append(head,movie);                    // Append the movie to the list
     }
-    // free(line);
-    fclose(file);
+    fclose(file); // Close the file
     
+    // If the list is empty, print an error message and exit
+    // This will happen if the column headers are present, but not the data
     if (head->next != NULL) {
         head = head->next;
     } else {
@@ -357,10 +380,11 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    print_movie_list(head);
+    // Print message with the number of movies parsed
     int movie_count = list_length(head);
     printf("Processed file %s and parsed data for %d movies.\n", file_name, movie_count);
 
+    // Call the menu loop
     menu_loop(head);
 
     return 0;
