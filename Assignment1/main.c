@@ -52,7 +52,7 @@ struct movie_list_t * append(struct movie_list_t * ml, struct movie_t m) {
 
     // If the list is empty, set the head to the new node
     if (last->movie == NULL) {
-        free(last);
+        // free(last);
         head = fresh;
     }
 
@@ -174,7 +174,7 @@ struct movie_t construct_movie(char* line) {
     movie.rating = atof(tokens[3]);
 
     // Free the tokens array
-    free(tokens);
+    // free(tokens);
 
     return movie;
 }
@@ -347,7 +347,7 @@ int main(int argc, char** argv) {
 
         // free(line);
     }
-    free(line);
+    // free(line);
     fclose(file);
     
     if (head->next != NULL) {
