@@ -392,7 +392,7 @@ void get_min_file_name(char * min_file_ptr) {
         exit(1);
     }
 
-    int min_size = 0;
+    int min_size = 0x7FFFFFFF;
     // char max_file[255];
 
     while (fgets(line_buffer, sizeof(line_buffer), cmd) != NULL) {
