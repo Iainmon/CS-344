@@ -349,14 +349,14 @@ int get_file_size(char* file_name) {
     }
     fseek(file, 0, SEEK_END);
     int size = ftell(file);
-    // fclose(file);
+    fclose(file);
     return size;
 }
 
 void get_max_file_name(char * max_file_ptr) {
 
     FILE * cmd;
-    char line_buffer[255];
+    char line_buffer[255] = {0};
 
     cmd = popen("/bin/ls -1 movies_*.csv", "r");
 
@@ -369,7 +369,7 @@ void get_max_file_name(char * max_file_ptr) {
     // char max_file[255];
 
     while (fgets(line_buffer, sizeof(line_buffer), cmd) != NULL) {
-        // line_buffer[strcspn(line_buffer, "\r\n")] = 0;
+        line_buffer[strcspn(line_buffer, "\r\n")] = 0;
         int size = get_file_size(line_buffer);
         if (size > max_size) {
             max_size = size;
@@ -383,7 +383,7 @@ void get_max_file_name(char * max_file_ptr) {
 void get_min_file_name(char * min_file_ptr) {
 
     FILE * cmd;
-    char line_buffer[255];
+    char line_buffer[255] = {0};
 
     cmd = popen("/bin/ls -1 movies_*.csv", "r");
 
