@@ -285,93 +285,28 @@ void print_movies_in_language(struct movie_list_t * head, char* language) {
     }
 }
 
-void menu_loop(struct movie_list_t * head) {
-    
-    // Print the menu
-    printf("1. Show movies released in the specified year\n");
-    printf("2. Show highest rated movie for each year\n");
-    printf("3. Show the title and year of release of all movies in a specific language\n");
-    printf("4. Exit from the program\n");
-
-    // Get the user's choice
-    int choice = 0;
-    printf("\nEnter your choice: ");
-    scanf("%d", &choice);
-
-    // Validate the user's choice, if invalid, print an error message and call the menu loop again
-    if (choice < 1 || choice > 4) {
-        printf("\nInvalid choice. Try again.\n\n");
-        menu_loop(head);
-        return;
-    }
-
-    // Exit the program if the user chooses to
-    if (choice == 4) {
-        printf("\nGoodbye.\n");
-        return;
-    }
-
-    // Print the movies based on the user's choice
-
-    if (choice == 1) {
-        printf("Enter a year: ");
-        int year = 0;
-        scanf("%d", &year);
-        print_movies_by_year(head, year);
-        printf("\n");
-        menu_loop(head);
-        return;
-    }
-
-    if (choice == 2) {
-        print_movies_by_highest_rated_per_year(head);
-        printf("\n");
-        menu_loop(head);
-        return;
-    }
-
-    if (choice == 3) {
-        printf("Enter a language: ");
-        char language[20];
-        scanf("%s", language);
-        print_movies_in_language(head, language);
-        printf("\n");
-        menu_loop(head);
-        return;
-    }
-}
-
+// Helper function that returns the size of a file
 int get_file_size(char* file_name) {
-    // FILE * file = fopen(file_name, "r");
-    // if (file == NULL) {
-    //     printf("Error: Failed to open file %s\n", file_name);
-    //     return -1;
-    // }
-    // fseek(file, 0, SEEK_END);
-    // int size = ftell(file);
-    // fseek(file, 0, SEEK_SET);
-    // // if (file != NULL) { fclose(file); }
-    // return size;
-    struct stat st;
-    stat(file_name, &st);
-    int size = st.st_size;
+    struct stat f;
+    stat(file_name, &f);
+    int size = f.st_size;
     return size;
 }
 
 void get_max_file_name(char * max_file_ptr) {
 
+    // Get list of files in the directory
     FILE * cmd;
     char line_buffer[255] = {0};
-
     cmd = popen("/bin/ls -1 movies_*.csv", "r");
-
     if (cmd == NULL) {
         printf("Error: Failed to run command.\n");
         exit(1);
     }
 
+    // Find the file with the largest size
+
     int max_size = 0;
-    // char max_file[255];
 
     while (fgets(line_buffer, sizeof(line_buffer), cmd) != NULL) {
         line_buffer[strcspn(line_buffer, "\r\n")] = 0;
@@ -380,25 +315,22 @@ void get_max_file_name(char * max_file_ptr) {
             max_size = size;
             strcpy(max_file_ptr, line_buffer);
         }
-        // printf("%d | %s\n", size, line_buffer);
     }
-    // pclose(cmd);
 }
 
 void get_min_file_name(char * min_file_ptr) {
 
+    // Get list of files in the directory
     FILE * cmd;
     char line_buffer[255] = {0};
-
     cmd = popen("/bin/ls -1 movies_*.csv", "r");
-
     if (cmd == NULL) {
         printf("Error: Failed to run command.\n");
         exit(1);
     }
 
+    // Find the file with the smallest size
     int min_size = 0x7FFFFFFF;
-    // char max_file[255];
 
     while (fgets(line_buffer, sizeof(line_buffer), cmd) != NULL) {
         line_buffer[strcspn(line_buffer, "\r\n")] = 0;
@@ -407,9 +339,7 @@ void get_min_file_name(char * min_file_ptr) {
             min_size = size;
             strcpy(min_file_ptr, line_buffer);
         }
-        // printf("%d | %s\n", size, line_buffer);
     }
-   // pclose(cmd);
 }
 
 struct movie_list_t * read_movies(char * file_name) {
@@ -441,48 +371,23 @@ struct movie_list_t * read_movies(char * file_name) {
     } else {
         printf("No movies present.\n");
         exit(1);
-        // return NULL;
     }
 
-    // Print message with the number of movies parsed
-    // int movie_count = list_length(head);
-    // printf("Processed file %s and parsed data for %d movies.\n", file_name, movie_count);
-
-    // Call the menu loop
-    // menu_loop(head);
     return head;
 }
-// sprintf(buffer, "pattern", args...);
+
 void write_years(struct movie_list_t * head, char * folder_name) {
+    // Iterate through linked list and append the movie title to the file
     struct movie_list_t * curr;
     curr = head;
     char* cmd_buff = malloc(sizeof(char) * 1024);
     while (curr != NULL) {
+        // Append the movie title to the file
         assert(curr->movie != NULL);
-
-/*
-        char file_name[256];
-        sprintf(file_name, "%s/%d.txt", folder_name, curr->movie->year);
-
-        FILE * file = fopen(file_name, "a");
-        printf("Opening file %s\n", file_name);
-        if (file == NULL) {
-            printf("Error: Failed to open file %s", file_name);
-            exit(1);
-        }
-        setbuf(file, NULL);
-        // char* title_buffer = malloc(sizeof(char) * strlen(curr->movie->title) + 1);
-        // sprintf(title_buffer, "%s\n", curr->movie->title);
-        // fputs(title_buffer, file);
-        fprintf(file, "%s\n", curr->movie->title);
-        //  fflush(file);
-        fclose(file);
-*/
-
         sprintf(cmd_buff, "echo \"%s\" >> %s/%d.txt", curr->movie->title, folder_name, curr->movie->year);
         FILE * cmd = popen(cmd_buff, "r");
         if (cmd == NULL) {
-            printf("Error: Failed to run command. | %s\n", cmd_buff);
+            printf("Error: Failed to write to file :  %s/%d.txt\n", folder_name, curr->movie->year);
             exit(1);
         }
         pclose(cmd);
@@ -491,20 +396,22 @@ void write_years(struct movie_list_t * head, char * folder_name) {
     }
 }
 
+// Function to create a folder with a random name
 char * make_folder() {
-
+    // Set the random seed
     srand(time(NULL));
     int min_num = 0;
     int max_num = 99999;
+    // Generate a random number between 0 and 99999
     int random_number = rand() % (max_num + 1 - min_num) + min_num;
 
+    // Create the folder name
     char * folder_name = malloc(sizeof(char) * 255);
-    
     sprintf(folder_name, "moncrief.movies.%d", random_number);
 
+    // Create the folder
     char cmd_buffer[255];
     sprintf(cmd_buffer, "mkdir %s", folder_name);
-
     FILE * cmd = popen(cmd_buffer, "r");
     if (cmd == NULL) {
         printf("Error: Failed to run command. | %s\n", folder_name);
@@ -515,10 +422,11 @@ char * make_folder() {
     return folder_name;
 }
 
+// Function to set the permissions of the folder and files
 void set_permissions(char * folder_name) {
+    // Set the permissions of the files
     char cmd_buffer_1[255];
     sprintf(cmd_buffer_1, "chmod 640 %s/*.txt", folder_name);
-
     FILE * cmd = popen(cmd_buffer_1, "r");
     if (cmd == NULL) {
         printf("Error: Failed to run command. | %s\n", cmd_buffer_1);
@@ -526,9 +434,9 @@ void set_permissions(char * folder_name) {
     }
     pclose(cmd);
 
+    // Set the permissions of the folder
     char cmd_buffer_2[255];
     sprintf(cmd_buffer_2, "chmod 750 %s", folder_name);
-
     cmd = popen(cmd_buffer_2, "r");
     if (cmd == NULL) {
         printf("Error: Failed to run command. | %s\n", cmd_buffer_2);
@@ -538,26 +446,26 @@ void set_permissions(char * folder_name) {
 }
 
 void get_input_file_name(char * file_name) {
-    // Which file you want to process?
-    // Enter 1 to pick the largest file
-    // Enter 2 to pick the smallest file
-    // Enter 3 to specify the name of a file
 
+    // Display menu
     printf("\nWhich file you want to process?\n");
     printf("Enter 1 to pick the largest file\n");
     printf("Enter 2 to pick the smallest file\n");
     printf("Enter 3 to specify the name of a file\n");
 
+    // Get user input
     int choice;
     printf("\nEnter a choice from 1 to 3: ");
     scanf("%d", &choice);
 
+    // Validate the user input
     if (choice < 1 || choice > 3) {
         printf("Invalid choice! Please try again.\n\n");
         get_input_file_name(file_name);
         return;
     }
 
+    // Get the file name to be processed
     if (choice == 1) {
         get_max_file_name(file_name);
         return;
@@ -565,8 +473,10 @@ void get_input_file_name(char * file_name) {
         get_min_file_name(file_name);
         return;
     } else if (choice == 3) {
+        // Get the file name from the user
         printf("Enter the complete file name: ");
         scanf("%s", file_name);
+        // Check if the file exists
         FILE * file;
         file = fopen(file_name, "r");
         if (file == NULL) {
@@ -574,41 +484,45 @@ void get_input_file_name(char * file_name) {
             get_input_file_name(file_name);
             return;
         }
-        // fclose(file);
     }
 }
 
 
 void file_selection_menu() {
 
+    // Get the file name to be processed
     char * file_name;
     file_name = malloc(sizeof(char) * 256);
-
     get_input_file_name(file_name);
+
     printf("Now processing the chosen file named %s\n", file_name);
 
+    // Read the file and create a linked list
     struct movie_list_t * head = read_movies(file_name);
+
+    // Create a folder with a random name
     char * folder_name = make_folder();
     printf("Created directory with the name: %s\n", folder_name);
 
+    // Write the movies to the files
     write_years(head, folder_name);
-    //printf("Wrote the data to the directory.\n");
+
+    // Set the permissions of the folder and files
     set_permissions(folder_name);
-    //printf("Set the permissions on the directory.\n");
-    // free(file_name);
-    // free(folder_name);
 }
 
 void main_loop() {
-    // 1. Select file to process
-    // 2. Exit the program
+
+    // Display menu
     printf("\n1. Select file to process\n");
     printf("2. Exit the program\n");
     printf("\nEnter a choice 1 or 2: ");
 
+    // Get user input
     int choice;
     scanf("%d", &choice);
 
+    // Validate the user input
     if (choice == 1) {
         file_selection_menu();
         main_loop();
@@ -622,6 +536,7 @@ void main_loop() {
 
 int main(int argc, char** argv) {
 
+    // Start the main loop
     main_loop();
 
     return 0;
