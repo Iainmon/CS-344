@@ -467,7 +467,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
         // fputs(title_buffer, file);
         fprintf(file, "%s\n", curr->movie->title);
         //  fflush(file);
-        // fclose(file);
+        fclose(file);
 
         curr = curr->next;
     }
@@ -562,7 +562,7 @@ void get_input_file_name(char * file_name) {
 
 void file_selection_menu() {
 
-    char file_name[255];
+    char file_name[500];
 
     get_input_file_name(file_name);
     printf("Now processing the chosen file named %s\n", file_name);
