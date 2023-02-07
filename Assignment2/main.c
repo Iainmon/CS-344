@@ -456,7 +456,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
         char file_name[500];
         sprintf(file_name, "%s/%d.txt", folder_name, curr->movie->year);
 
-        FILE * file = fopen(file_name, "ab");
+        FILE * file = fopen(file_name, "a");
         printf("Opening file %s\n", file_name);
         if (file == NULL) {
             printf("Error: Failed to open file %s", file_name);
@@ -467,7 +467,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
         // fputs(title_buffer, file);
         fprintf(file, "%s\n", curr->movie->title);
         //  fflush(file);
-        fclose(file);
+        // fclose(file);
 
         curr = curr->next;
     }
