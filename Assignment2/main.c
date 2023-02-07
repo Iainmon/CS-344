@@ -369,7 +369,7 @@ void get_max_file_name(char * max_file_ptr) {
     // char max_file[255];
 
     while (fgets(line_buffer, sizeof(line_buffer), cmd) != NULL) {
-        line_buffer[strcspn(line_buffer, "\r\n")] = 0;
+        // line_buffer[strcspn(line_buffer, "\r\n")] = 0;
         int size = get_file_size(line_buffer);
         if (size > max_size) {
             max_size = size;
@@ -396,7 +396,7 @@ void get_min_file_name(char * min_file_ptr) {
     // char max_file[255];
 
     while (fgets(line_buffer, sizeof(line_buffer), cmd) != NULL) {
-        line_buffer[strcspn(line_buffer, "\r\n")] = 0;
+        // line_buffer[strcspn(line_buffer, "\r\n")] = 0;
         int size = get_file_size(line_buffer);
         if (size < min_size) {
             min_size = size;
@@ -481,7 +481,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
             exit(1);
         }
         pclose(cmd);
-        
+
         curr = curr->next;
     }
 }
