@@ -451,9 +451,11 @@ struct movie_list_t * read_movies(char * file_name) {
 void write_years(struct movie_list_t * head, char * folder_name) {
     struct movie_list_t * curr;
     curr = head;
+    char* cmd_buff = malloc(sizeof(char) * 1024);
     while (curr != NULL) {
         assert(curr->movie != NULL);
 
+/*
         char file_name[256];
         sprintf(file_name, "%s/%d.txt", folder_name, curr->movie->year);
 
@@ -470,7 +472,16 @@ void write_years(struct movie_list_t * head, char * folder_name) {
         fprintf(file, "%s\n", curr->movie->title);
         //  fflush(file);
         fclose(file);
+*/
 
+        sprintf(cmd_buff, "echo \"%s\" >> %s/%d.txt", curr->movie->title, folder_name, curr->movie->year);
+        FILE * cmd = popen(cmd_buff, "r");
+        if (cmd == NULL) {
+            printf("Error: Failed to run command. | %s\n", cmd_buff);
+            exit(1);
+        }
+        pclose(cmd);
+        
         curr = curr->next;
     }
 }
