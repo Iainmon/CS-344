@@ -342,15 +342,19 @@ void menu_loop(struct movie_list_t * head) {
 }
 
 int get_file_size(char* file_name) {
-    FILE * file = fopen(file_name, "r");
-    if (file == NULL) {
-        printf("Error: Failed to open file %s\n", file_name);
-        return -1;
-    }
-    fseek(file, 0, SEEK_END);
-    int size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    // if (file != NULL) { fclose(file); }
+    // FILE * file = fopen(file_name, "r");
+    // if (file == NULL) {
+    //     printf("Error: Failed to open file %s\n", file_name);
+    //     return -1;
+    // }
+    // fseek(file, 0, SEEK_END);
+    // int size = ftell(file);
+    // fseek(file, 0, SEEK_SET);
+    // // if (file != NULL) { fclose(file); }
+    // return size;
+    struct stat st;
+    stat(file_name, &st);
+    int size = st.st_size;
     return size;
 }
 
