@@ -2,4 +2,4 @@
 
 
 main: main.c
-	gcc -std=gnu99 -g -o movies main.c -lc
+	gcc -std=gnu99 -o movies_by_year main.c
