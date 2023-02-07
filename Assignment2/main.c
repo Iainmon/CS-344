@@ -462,6 +462,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
             printf("Error: Failed to open file %s", file_name);
             exit(1);
         }
+        setbuf(file, NULL);
         // char* title_buffer = malloc(sizeof(char) * strlen(curr->movie->title) + 1);
         // sprintf(title_buffer, "%s\n", curr->movie->title);
         // fputs(title_buffer, file);
