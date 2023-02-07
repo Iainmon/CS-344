@@ -413,7 +413,7 @@ struct movie_list_t * read_movies(char * file_name) {
     FILE* file = fopen(file_name, "r");
     if (file == NULL) {
         printf("Error: Failed to open file %s\n", file_name);
-        return 1;
+        exit(1);
     }
 
     char* line = NULL;
@@ -435,7 +435,8 @@ struct movie_list_t * read_movies(char * file_name) {
         head = head->next;
     } else {
         printf("No movies present.\n");
-        return 0;
+        exit(1);
+        // return NULL;
     }
 
     // Print message with the number of movies parsed
