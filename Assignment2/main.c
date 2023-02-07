@@ -409,7 +409,7 @@ void get_min_file_name(char * min_file_ptr) {
         }
         // printf("%d | %s\n", size, line_buffer);
     }
-    pclose(cmd);
+   // pclose(cmd);
 }
 
 struct movie_list_t * read_movies(char * file_name) {
