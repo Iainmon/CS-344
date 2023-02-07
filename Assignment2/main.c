@@ -423,7 +423,7 @@ struct movie_list_t * read_movies(char * file_name) {
 
     // Read the file line by line
     while (getline(&line, &line_length, file) != -1) {
-        // line[strcspn(line, "\r\n")] = 0;              // Remove the newline character
+        line[strcspn(line, "\r\n")] = 0;              // Remove the newline character
         struct movie_t movie = construct_movie(line); // Construct a movie from the line
         head = append(head,movie);                    // Append the movie to the list
     }
