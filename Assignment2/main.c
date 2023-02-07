@@ -590,6 +590,8 @@ void file_selection_menu() {
     printf("Wrote the data to the directory.\n");
     set_permissions(folder_name);
     printf("Set the permissions on the directory.\n");
+    // free(file_name);
+    // free(folder_name);
 }
 
 void main_loop() {
