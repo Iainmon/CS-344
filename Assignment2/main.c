@@ -592,9 +592,9 @@ void file_selection_menu() {
     printf("Created directory with the name: %s\n", folder_name);
 
     write_years(head, folder_name);
-    printf("Wrote the data to the directory.\n");
+    //printf("Wrote the data to the directory.\n");
     set_permissions(folder_name);
-    printf("Set the permissions on the directory.\n");
+    //printf("Set the permissions on the directory.\n");
     // free(file_name);
     // free(folder_name);
 }
