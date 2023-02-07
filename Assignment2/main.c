@@ -477,9 +477,8 @@ void get_input_file_name(char * file_name) {
         printf("Enter the complete file name: ");
         scanf("%s", file_name);
         // Check if the file exists
-        FILE * file;
-        file = fopen(file_name, "r");
-        if (file == NULL) {
+        struct stat st;
+        if (stat(file_name, &st) == -1) {
             printf("Error: Failed to open file %s\n", file_name);
             get_input_file_name(file_name);
             return;
