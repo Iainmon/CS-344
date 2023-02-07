@@ -574,7 +574,7 @@ void get_input_file_name(char * file_name) {
             get_input_file_name(file_name);
             return;
         }
-        fclose(file);
+        // fclose(file);
     }
 }
 
