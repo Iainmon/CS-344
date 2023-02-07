@@ -349,7 +349,7 @@ int get_file_size(char* file_name) {
     }
     fseek(file, 0, SEEK_END);
     int size = ftell(file);
-    fclose(file);
+    if (file != NULL) { fclose(file); }
     return size;
 }
 
