@@ -382,7 +382,7 @@ void get_max_file_name(char * max_file_ptr) {
         }
         // printf("%d | %s\n", size, line_buffer);
     }
-    pclose(cmd);
+    // pclose(cmd);
 }
 
 void get_min_file_name(char * min_file_ptr) {
