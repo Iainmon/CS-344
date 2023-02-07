@@ -573,6 +573,7 @@ void get_input_file_name(char * file_name) {
     }
 }
 
+
 void file_selection_menu() {
 
     char * file_name;
