@@ -567,13 +567,12 @@ void get_input_file_name(char * file_name) {
         file = fopen(file_name_buff, "r");
         if (file == NULL) {
             printf("Error: Failed to open file %s\n", file_name_buff);
-            get_input_file_name(file_name);
-            return;
         } else {
             fclose(file);
             strcpy(file_name, file_name_buff);
-
+            return;
         }
+        get_input_file_name(file_name);
     }
 }
 
