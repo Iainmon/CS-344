@@ -561,15 +561,19 @@ void get_input_file_name(char * file_name) {
         return;
     } else if (choice == 3) {
         printf("Enter the complete file name: ");
-        scanf("%s", file_name);
+        char file_name_buff[256] = {0};
+        scanf("%s", file_name_buff);
         FILE * file;
-        file = fopen(file_name, "r");
+        file = fopen(file_name_buff, "r");
         if (file == NULL) {
-            printf("Error: Failed to open file %s\n", file_name);
+            printf("Error: Failed to open file %s\n", file_name_buff);
             get_input_file_name(file_name);
             return;
+        } else {
+            fclose(file);
+            strcpy(file_name, file_name_buff);
+
         }
-        fclose(file);
     }
 }
 
