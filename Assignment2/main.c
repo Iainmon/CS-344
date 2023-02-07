@@ -463,7 +463,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
         }
         fprintf(file, "%s\n", curr->movie->title);
         fflush(file);
-        fclose(file);
+        // fclose(file);
 
         curr = curr->next;
     }
