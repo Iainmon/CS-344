@@ -453,7 +453,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
     while (curr != NULL) {
         assert(curr->movie != NULL);
 
-        char file_name[255];
+        char file_name[500];
         sprintf(file_name, "%s/%d.txt", folder_name, curr->movie->year);
 
         FILE * file = fopen(file_name, "a");
