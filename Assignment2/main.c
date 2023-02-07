@@ -459,6 +459,7 @@ void write_years(struct movie_list_t * head, char * folder_name) {
         FILE * file = fopen(file_name, "a");
         if (file == NULL) {
             printf("Error: Failed to open file %s", file_name);
+            exit(1);
         }
         fprintf(file, "%s\n", curr->movie->title);
         fclose(file);
@@ -565,8 +566,9 @@ void file_selection_menu() {
     printf("Created directory with the name: %s\n", folder_name);
 
     write_years(head, folder_name);
+    printf("Wrote the data to the directory.\n");
     set_permissions(folder_name);
-
+    printf("Set the permissions on the directory.\n");
 }
 
 void main_loop() {
