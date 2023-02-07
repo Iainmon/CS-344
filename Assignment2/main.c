@@ -396,7 +396,7 @@ void get_min_file_name(char * min_file_ptr) {
     // char max_file[255];
 
     while (fgets(line_buffer, sizeof(line_buffer), cmd) != NULL) {
-        // line_buffer[strcspn(line_buffer, "\r\n")] = 0;
+        line_buffer[strcspn(line_buffer, "\r\n")] = 0;
         int size = get_file_size(line_buffer);
         if (size < min_size) {
             min_size = size;
