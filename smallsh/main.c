@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <assert.h>
 
 #define MAX_ARGS 512
 #define MAX_CHARS 2048
@@ -128,14 +129,31 @@ FILE *run_cmd(const char *command, const char *type) {
 typedef struct ShellState {
     pid_t backgroundProcesses[MAX_BACKGROUND_PROCESSES];
     int numBackgroundProcesses;
+    int exitStatus;
+    int exitSignal;
 } ShellState;
 
+
+void sig_handler(int signo) {
+    if (signo == SIGINT) {
+        fflush(stdout);
+        // sprintf(buff,"terminated by signal %d\n", signo);
+        // exit(0);
+    }
+}
+
+void sig_handler2(int signo) {
+    if (signo == SIGTSTP) {
+        printf("terminated by signal %d\n", signo);
+        fflush(stdout);
+    }
+}
 void executeCommand(Command cmd, ShellState *state) {
     // int pipe_fd_1[2];
     // pipe(pipe_fd_1);
       int link[2]; 
     // fflush(stdout);
-    // fflush(stdout);
+    fflush(stdout);
     pid_t pid = fork();
     if (pid == -1) {
         perror("fork");
@@ -189,6 +207,10 @@ void executeCommand(Command cmd, ShellState *state) {
                 exit(1);
             }
         }
+
+        if (cmd.background == 0) {
+            signal(SIGINT, sig_handler);
+        }
         
         // if (!(cmd.outputRedirect || cmd.inputRedirect)) {
         //     dup2 (link[1], STDOUT_FILENO);
@@ -197,6 +219,7 @@ void executeCommand(Command cmd, ShellState *state) {
         // }
 
         // fflush(stdout);
+        // setpgid(0, 0);
         if (execvp(cmd.name, cmd.args) == -1) {
             perror("execvp");
             exit(1);
@@ -204,6 +227,7 @@ void executeCommand(Command cmd, ShellState *state) {
             // fflush(stdout);
             exit(0);
         }
+        exit(0);
     } else {
         // close(pipe_fd_1[1]);
         // dup2(pipe_fd_1[0], STDIN_FILENO);
@@ -216,11 +240,21 @@ void executeCommand(Command cmd, ShellState *state) {
                 perror("waitpid");
                 exit(1);
             }
+
+            if (WIFEXITED(status)) {
+                state->exitStatus = WEXITSTATUS(status);
+                state->exitSignal = WTERMSIG(status);
+            } else if (WIFSIGNALED(status)) {
+                state->exitStatus = WEXITSTATUS(status);
+                state->exitSignal = WTERMSIG(status);
+                printf("terminated by signal %d\n", state->exitSignal);
+
+            }
         } else {
             state->backgroundProcesses[state->numBackgroundProcesses] = pid;
             state->numBackgroundProcesses++;
             printf("background pid is %d\n", pid);
-            // fflush(stdout);
+            fflush(stdout);
         }
     }
 }
@@ -262,12 +296,13 @@ void handle_processes(ShellState *state) {
             if (state->backgroundProcesses[i] == 0) {
                 continue;
             }
+            assert(state->backgroundProcesses[i] != 0);
             int status;
             pid_t pid = waitpid(state->backgroundProcesses[i], &status, WNOHANG);
             if (pid == -1) {
                 perror("waitpid");
                 exit(1);
-            } else if (pid > 0 && WIFEXITED(status)) {
+            } else if (pid == state->backgroundProcesses[i] || WIFEXITED(status)) {
                 printf("background pid %d is done: ", pid);
                 if (WIFEXITED(status)) {
                     printf("exit value %d", WEXITSTATUS(status));
@@ -276,14 +311,25 @@ void handle_processes(ShellState *state) {
                 }
                 printf("\n");
                 fflush(stdout);
-                state->backgroundProcesses[i] = NULL;
+                state->backgroundProcesses[i] = 0;
             } else {
                 // Process is still running
+                // fflush(stdout);
+
             }
         }
 }
 
+
+
 int main(int argc, char* argv[]) {
+
+
+    // if (signal(SIGINT, sig_handler) == SIG_ERR || signal(SIGTSTP, sig_handler) == SIG_ERR) {
+    //     perror("Can't catch SIGINT or SIGTSTP\n");
+    // }
+    signal(SIGINT, SIG_IGN);
+
 
     ShellState state = {0};
     for (int i = 0; i < MAX_BACKGROUND_PROCESSES; i++) {
@@ -292,17 +338,38 @@ int main(int argc, char* argv[]) {
     
     while (1) {
 
+    
         handle_processes(&state);
-
-
+        fflush(stdout);
         Command* cmd = malloc(sizeof(Command));
         *cmd = getInputLoop();
+
+        if (strcmp(cmd->name, "exit") == 0) {
+            exit(0);
+        }
+        if (strcmp(cmd->name, "cd") == 0) {
+            if (cmd->args[1] == NULL) {
+                chdir(getenv("HOME"));
+            } else {
+                chdir(cmd->args[1]);
+            }
+            continue;
+        }
+        if (strcmp(cmd->name, "status") == 0) {
+            if (state.exitSignal != 0) {
+                printf("terminated by signal %d\n", state.exitSignal);
+            } else {
+                printf("exit value %d\n", state.exitStatus);
+            }
+            fflush(stdout);
+            continue;
+        }
         // prettyPrintCommand(*cmd);
 
         // initialize shell state
         // struct ShellState state;
-
         executeCommand(*cmd, &state);
+        
     }
 
     return 0;
