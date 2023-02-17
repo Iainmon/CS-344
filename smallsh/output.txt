@@ -4,7 +4,9 @@ makefile
 out.txt
 out.txt
 
+output.txt
 p3testscript-improved.sh
+sleep.txt
 smallsh
 smallsh-test-dir
 
