@@ -139,6 +139,10 @@ Command getInputLoop() {
             Command cmd = {0};
             cmd.name = NULL;
             return cmd;
+        } else if (inputString[0] == '#') {
+            Command cmd = {0};
+            cmd.name = NULL;
+            return cmd;
         } else {
             // Parse and return the command
             Command cmd = parseCommand(inputString);
