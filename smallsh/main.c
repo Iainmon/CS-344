@@ -14,6 +14,7 @@
 
 #define MAX_BACKGROUND_PROCESSES 512
 
+pid_t proc_pid;
 
 typedef struct Command {
     char *name;
@@ -24,12 +25,62 @@ typedef struct Command {
     int background;
 } Command;
 
+
+char *str_replace(char *orig, char *rep, char *with) {
+    char *result; // the return string
+    char *ins;    // the next insert point
+    char *tmp;    // varies
+    int len_rep;  // length of rep (the string to remove)
+    int len_with; // length of with (the string to replace rep with)
+    int len_front; // distance between rep and end of last rep
+    int count;    // number of replacements
+
+    // sanity checks and initialization
+    if (!orig || !rep)
+        return NULL;
+    len_rep = strlen(rep);
+    if (len_rep == 0)
+        return NULL; // empty rep causes infinite loop during count
+    if (!with)
+        with = "";
+    len_with = strlen(with);
+
+    // count the number of replacements needed
+    ins = orig;
+    for (count = 0; tmp = strstr(ins, rep); ++count) {
+        ins = tmp + len_rep;
+    }
+
+    tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+
+    if (!result)
+        return NULL;
+
+    // first time through the loop, all the variable are set correctly
+    // from here on,
+    //    tmp points to the end of the result string
+    //    ins points to the next occurrence of rep in orig
+    //    orig points to the remainder of orig after "end of rep"
+    while (count--) {
+        ins = strstr(orig, rep);
+        len_front = ins - orig;
+        tmp = strncpy(tmp, orig, len_front) + len_front;
+        tmp = strcpy(tmp, with) + len_with;
+        orig += len_front + len_rep; // move to next "end of rep"
+    }
+    strcpy(tmp, orig);
+    return result;
+}
+
 Command parseCommand(char *input) {
     input[strcspn(input, "\r\n")] = 0;
     Command cmd = {0};
     char *token;
     int i = 0;
     int args = 0;
+
+    char *buff = malloc(10);
+    sprintf(buff, "%d", proc_pid);
 
     // Tokenize input string by whitespace
     token = strtok(input, " ");
@@ -45,6 +96,7 @@ Command parseCommand(char *input) {
             //     cmd.name = token;
             //     args = 1;
             // }
+            token = str_replace(token, "$$", buff);
             cmd.args[cmd.numArgs] = token;
             cmd.numArgs++;
         }
@@ -61,6 +113,8 @@ Command parseCommand(char *input) {
 
     return cmd;
 }
+
+
 
 
 Command getInputLoop() {
@@ -211,7 +265,8 @@ void executeCommand(Command cmd, ShellState *state) {
         if (cmd.background == 0) {
             signal(SIGINT, sig_handler);
         }
-        
+
+        signal(SIGTSTP, SIG_IGN);
         // if (!(cmd.outputRedirect || cmd.inputRedirect)) {
         //     dup2 (link[1], STDOUT_FILENO);
         //     close(link[0]);
@@ -302,7 +357,7 @@ void handle_processes(ShellState *state) {
             if (pid == -1) {
                 perror("waitpid");
                 exit(1);
-            } else if (pid == state->backgroundProcesses[i] || WIFEXITED(status)) {
+            } else if (pid > 0 && (pid == state->backgroundProcesses[i] || WIFEXITED(status))) {
                 printf("background pid %d is done: ", pid);
                 if (WIFEXITED(status)) {
                     printf("exit value %d", WEXITSTATUS(status));
@@ -320,7 +375,19 @@ void handle_processes(ShellState *state) {
         }
 }
 
+bool allow_background = true;
 
+void sig_handler3(int signo) {
+    if (signo == SIGTSTP) {
+        allow_background = !allow_background;
+        if (allow_background) {
+            printf("\nExiting foreground-only mode\n: ");
+        } else {
+            printf("\nEntering foreground-only mode (& is now ignored)\n: ");
+        }
+        fflush(stdout);
+    }
+}
 
 int main(int argc, char* argv[]) {
 
@@ -328,13 +395,17 @@ int main(int argc, char* argv[]) {
     // if (signal(SIGINT, sig_handler) == SIG_ERR || signal(SIGTSTP, sig_handler) == SIG_ERR) {
     //     perror("Can't catch SIGINT or SIGTSTP\n");
     // }
+
+    proc_pid = getpid();
     signal(SIGINT, SIG_IGN);
+    signal(SIGTSTP, sig_handler3);
 
 
     ShellState state = {0};
     for (int i = 0; i < MAX_BACKGROUND_PROCESSES; i++) {
         state.backgroundProcesses[i] = 0;
     }
+
     
     while (1) {
 
@@ -343,6 +414,10 @@ int main(int argc, char* argv[]) {
         fflush(stdout);
         Command* cmd = malloc(sizeof(Command));
         *cmd = getInputLoop();
+        // prettyPrintCommand(*cmd);
+        if (!allow_background) {
+            cmd->background = false;
+        }
 
         if (strcmp(cmd->name, "exit") == 0) {
             exit(0);
@@ -364,7 +439,6 @@ int main(int argc, char* argv[]) {
             fflush(stdout);
             continue;
         }
-        // prettyPrintCommand(*cmd);
 
         // initialize shell state
         // struct ShellState state;
