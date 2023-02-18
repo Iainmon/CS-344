@@ -360,6 +360,20 @@ void handle_processes(ShellState *state) {
         }
 }
 
+void kill_all_child_processes(ShellState *state) {
+    for (int i = 0; i < MAX_BACKGROUND_PROCESSES; i++) {
+        if (state->backgroundProcesses[i] == 0) {
+            continue;
+        }
+        assert(state->backgroundProcesses[i] != 0);
+        pid_t pid = state->backgroundProcesses[i];
+        printf("killing pid %d\n", pid);
+        fflush(stdout);
+
+        kill(pid, SIGTERM);
+    }
+}
+
 bool allow_background = true;
 
 void sig_handler3(int signo) {
@@ -410,7 +424,10 @@ int main(int argc, char* argv[]) {
         }
 
         if (strcmp(cmd->name, "exit") == 0) {
-            exit(0);
+            kill_all_child_processes(&state);
+            // exit(0);
+            // exit(state.exitStatus);
+            break;
         }
         if (strcmp(cmd->name, "cd") == 0) {
             if (cmd->args[1] == NULL) {
@@ -435,6 +452,7 @@ int main(int argc, char* argv[]) {
         executeCommand(*cmd, &state);
         
     }
+
 
     return state.exitStatus;
 //   // initialize shell state
