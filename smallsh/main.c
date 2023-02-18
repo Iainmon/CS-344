@@ -134,8 +134,11 @@ Command getInputLoop() {
             perror("Error reading input");
             exit(1);
         } else if (bytesRead == 0 || strcmp(inputString, "\n") == 0) {
-            // Empty line, prompt again
-            continue;
+            // Empty line, return null command
+
+            Command cmd = {0};
+            cmd.name = NULL;
+            return cmd;
         } else {
             // Parse and return the command
             Command cmd = parseCommand(inputString);
@@ -315,24 +318,6 @@ void executeCommand(Command cmd, ShellState *state) {
 }
 
 
-// struct Status {
-//     int exitStatus;
-//     int termSignal;
-// };
-
-// void handle_SIGTSTP(int signo);
-// void handle_SIGINT(int signo);
-// void flushInputBuffer();
-// void printPrompt();
-// void parseInput(char* input, struct Command* cmd);
-// bool isComment(char* line);
-// void expandPID(char* orig, char* dest);
-// bool isBackgroundCommand(char* command);
-// int runCommand(struct Command* cmd, struct Status* status);
-// void executeBuiltInCommand(struct Command* cmd, struct Status* status);
-// void executeNonBuiltInCommand(struct Command* cmd, struct Status* status);
-// void checkBackgroundProcesses();
-
 void handle_processes(ShellState *state) {
     // int status;
     // pid_t pid;
@@ -415,6 +400,11 @@ int main(int argc, char* argv[]) {
         Command* cmd = malloc(sizeof(Command));
         *cmd = getInputLoop();
         // prettyPrintCommand(*cmd);
+
+        if (cmd->name == NULL) {
+            continue;
+        }
+
         if (!allow_background) {
             cmd->background = false;
         }
@@ -446,7 +436,7 @@ int main(int argc, char* argv[]) {
         
     }
 
-    return 0;
+    return state.exitStatus;
 //   // initialize shell state
 //   struct ShellState state;
 //   state.backgroundPids = malloc(MAX_BACKGROUND_PROCESSES * sizeof(pid_t));
