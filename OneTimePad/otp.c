@@ -37,7 +37,7 @@ char decrypt_char(char e, char k) {
 }
 
 
-char* encrypt(char* message, char* key) {
+char* encrypt_message(char* message, char* key) {
     // Get the length of the message and key
     int message_size = strlen(message);
     int key_size = strlen(key);
@@ -63,7 +63,7 @@ char* encrypt(char* message, char* key) {
     return encrypted;
 }
 
-char* decrypt(char* encrypted, char* key) {
+char* decrypt_message(char* encrypted, char* key) {
     // Get the length of the message and key
     int message_size = strlen(encrypted);
     int key_size = strlen(key);

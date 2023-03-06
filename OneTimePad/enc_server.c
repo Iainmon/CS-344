@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <assert.h>
+#include "otp.c"
+#include "dialog.c"
 
 pid_t fork_pids[5] = {0, 0, 0, 0, 0};
 
@@ -98,64 +100,21 @@ void handle_connection(int connection_socket) {
 }
 
 
-/*
 
-Communication schema:
-(connection started)
-server: enc_server
-client: enc_client|{message_length} -- maybe do enc_client|{block_nums} -- where block_nums is number of 256 byte blocks
-client: {message}
-sever: enc_server|{message_length}
-
-*/
-
-char* await_receive(int connection_socket, char *buffer, int buffer_size) {
-    // Allocate the buffer if it hasn't been allocated yet
-    if (buffer == NULL) {
-        buffer = malloc(buffer_size);
-        // assert(buffer != NULL);
-    }
-
-    // Clear the buffer
-    memset(buffer, '\0', buffer_size);
-
-    // Get the message from the client
-    int chars_read = recv(connection_socket, buffer, buffer_size - 1, 0);
-    if (chars_read < 0) {
-        printf("ERROR reading from socket");
-        // exit(1);
-    }
-
-    // Display the message
-    printf("SERVER(child) <- \"%s\"\n", buffer);
-    // printf("SERVER(child) <-: \"%c\"\n", buffer[0]);
-
-    // Make sure the buffer is null terminated
-    // assert(chars_read == strlen(buffer));
-    
-
-    return buffer;
-}
-
-void flush_socket_send(int connection_socket) {
-    char b[] = "a";
-    send(connection_socket, b, 1, 0);
-}
 
 void dialog(int connection_socket) {
-    int header_max_size = 256;
-    char* header_buffer = await_receive(connection_socket, NULL, header_max_size);
+    char* plaintext = await_receive_message(connection_socket);
 
-    // // Parse the header
+    char* key = await_receive_message(connection_socket);
+
+    printf("plaintext: %s\n", plaintext);
+    printf("key: %s\n", key);
+
+    char* ciphertext = encrypt_message(plaintext, key);
+
+    await_send_message(connection_socket, ciphertext);
     
-    int bar_idx = strcspn(header_buffer, "|");
-    int header_size = atoi(header_buffer + bar_idx + 1);
-    printf("Header size: %d\n", header_size);
 
-    flush_socket_send(connection_socket);
-
-    char* message_buffer = await_receive(connection_socket, NULL, header_size + 1);
-    printf("Message: %s\n", message_buffer);
 
 }
 

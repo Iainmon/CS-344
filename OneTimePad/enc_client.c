@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <netinet/tcp.h>
-
+#include "dialog.c"
 
 /**
  * Client code
@@ -46,23 +46,26 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber, char *hostn
 
 // Returns the contents of the file as a string
 char* getFileContents(char* filename);
-int _main(int argc, char* argv[],char* message);
+int _main(int argc, char* argv[],char* message,char* key);
 int main(int argc, char *argv[]) {
+
     char* messageFileName = argv[1];
     char* message = getFileContents(messageFileName);
+
+    char* keyFileName = argv[2];
+    char* key = getFileContents(keyFileName);
+    key[strcspn(key,"\r\n")] = '\0';
+
     while (1) {
-        _main(argc, argv,message);
+        _main(argc, argv,message,key);
         sleep(5);
     }
     return 0;
 }
 
-void flush_socket_recv(int connection_socket) {
-    char b[] = "a";
-    recv(connection_socket, b, 1, 0);
-}
 
-int _main(int argc, char* argv[],char* message) {
+
+int _main(int argc, char* argv[],char* message,char* key) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     char buffer[256];
@@ -123,6 +126,13 @@ int _main(int argc, char* argv[],char* message) {
     // Send message to server
     // Write to the server
     // charsWritten = send(socketFD, buffer, strlen(buffer), 0);
+    
+    await_send_message(socketFD, message);
+    await_send_message(socketFD, key);
+    char* ciphertext = await_receive_message(socketFD);
+    printf("ciphertext: %s\n", ciphertext);
+
+    /*
     char header[256];
     memset(header, '\0', sizeof(header));
     sprintf(header, "enc_client|%d", strlen(message));
@@ -136,6 +146,7 @@ int _main(int argc, char* argv[],char* message) {
     if (charsWritten < strlen(header)) {
         printf("CLIENT: WARNING: Not all data written to socket!\n");
     }
+    */
     // write(socketFD, header, strlen(header));
     // // fflush(socketFD);
     // write(socketFD, message, strlen(message));
@@ -143,8 +154,8 @@ int _main(int argc, char* argv[],char* message) {
 
     // sleep(1);
     // fflush(socketFD);
-    flush_socket_recv(socketFD);
-
+    // flush_socket_recv(socketFD);
+    /*
     charsWritten = send(socketFD, message, strlen(message), 0);
     if (charsWritten < 0) {
         error("CLIENT: ERROR writing to socket");
@@ -155,7 +166,7 @@ int _main(int argc, char* argv[],char* message) {
         printf("CLIENT: WARNING: Not all data written to socket!\n");
     }
 
-    
+    */
     // }
     // if (charsWritten < strlen(buffer)) {
     //     printf("CLIENT: WARNING: Not all data written to socket!\n");
