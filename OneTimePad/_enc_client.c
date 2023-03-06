@@ -5,8 +5,6 @@
 #include <sys/socket.h> // send(),recv()
 #include <sys/types.h>  // ssize_t
 #include <unistd.h>
-#include <string.h>
-
 
 /**
  * Client code
@@ -43,29 +41,15 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber, char *hostn
     memcpy((char *)&address->sin_addr.s_addr, hostInfo->h_addr_list[0], hostInfo->h_length);
 }
 
-// Returns the contents of the file as a string
-char* getFileContents(char* filename);
-
 int main(int argc, char *argv[]) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     char buffer[256];
     // Check usage & args
-    if (argc < 4) {
+    if (argc < 3) {
         fprintf(stderr, "USAGE: %s hostname port\n", argv[0]);
         exit(0);
     }
-    
-    char* messageFileName = argv[1];
-    char* keyFileName = argv[2];
-    int port = atoi(argv[3]);
-    char hostname[] = "localhost";
-
-    char* message = getFileContents(messageFileName);
-    char* key = getFileContents(keyFileName);
-
-    printf("message: %s\n", message);
-    printf("key: %s\n", key);
 
     // Create a socket
     socketFD = socket(AF_INET, SOCK_STREAM, 0);
@@ -74,7 +58,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Set up the server address struct
-    setupAddressStruct(&serverAddress, port, hostname);
+    setupAddressStruct(&serverAddress, atoi(argv[2]), argv[1]);
 
     // Connect to server
     if (connect(socketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
@@ -88,27 +72,16 @@ int main(int argc, char *argv[]) {
     fgets(buffer, sizeof(buffer) - 1, stdin);
     // Remove the trailing \n that fgets adds
     buffer[strcspn(buffer, "\n")] = '\0';
-    // message[strspn(message, "\n")] = '\0';
 
-    while(1) {
     // Send message to server
     // Write to the server
-    // charsWritten = send(socketFD, buffer, strlen(buffer), 0);
-    sleep(5);
-    charsWritten = send(socketFD, message, strlen(message), 0);
+    charsWritten = send(socketFD, buffer, strlen(buffer), 0);
     if (charsWritten < 0) {
         error("CLIENT: ERROR writing to socket");
-    } else {
-        printf("wrote: \"%s\"\n", message);
     }
-    if (charsWritten < strlen(message)) {
+    if (charsWritten < strlen(buffer)) {
         printf("CLIENT: WARNING: Not all data written to socket!\n");
     }
-    
-    }
-    // if (charsWritten < strlen(buffer)) {
-    //     printf("CLIENT: WARNING: Not all data written to socket!\n");
-    // }
 
     // Get return message from server
     // Clear out the buffer again for reuse
@@ -123,37 +96,4 @@ int main(int argc, char *argv[]) {
     // Close the socket
     close(socketFD);
     return 0;
-}
-
-
-char* getFileContents(char* filename) {
-
-    // Open the file
-    FILE* f = fopen(filename, "r");
-    if (f == NULL) {
-        fprintf(stderr, "Error opening message file '%s'", filename);
-        exit(1);
-    }
-
-    // Get the file size
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    // Allocate memory for the file contents
-    char* string = malloc(fsize + 1);
-    if (string == NULL) {
-        fprintf(stderr, "Error allocating memory for file contents");
-        exit(1);
-    }
-
-    // Read the file contents into the string
-    fread(string, fsize, 1, f);
-    fclose(f);
-    
-    // Add a null terminator
-    string[fsize] = '\0';
-
-    return string;
-
 }
