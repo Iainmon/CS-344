@@ -123,12 +123,12 @@ char* await_receive(int connection_socket, char *buffer, int buffer_size) {
     int chars_read = recv(connection_socket, buffer, buffer_size - 1, 0);
     if (chars_read < 0) {
         printf("ERROR reading from socket");
-        exit(1);
+        // exit(1);
     }
 
     // Display the message
-    printf("SERVER(child) <-: \"%s\"\n", buffer);
-    printf("SERVER(child) <-: \"%c\"\n", buffer[0]);
+    printf("SERVER(child) <- \"%s\"\n", buffer);
+    // printf("SERVER(child) <-: \"%c\"\n", buffer[0]);
 
     // Make sure the buffer is null terminated
     // assert(chars_read == strlen(buffer));
@@ -146,7 +146,10 @@ void dialog(int connection_socket) {
     int bar_idx = strcspn(header_buffer, "|");
     int header_size = atoi(header_buffer + bar_idx + 1);
     printf("Header size: %d\n", header_size);
-    // printf("Header size: %d\n", header_size);
+
+
+    char* message_buffer = await_receive(connection_socket, NULL, header_size + 1);
+    printf("Message: %s\n", message_buffer);
 
 }
 

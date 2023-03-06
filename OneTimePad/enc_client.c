@@ -6,6 +6,7 @@
 #include <sys/types.h>  // ssize_t
 #include <unistd.h>
 #include <string.h>
+#include <netinet/tcp.h>
 
 
 /**
@@ -45,8 +46,18 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber, char *hostn
 
 // Returns the contents of the file as a string
 char* getFileContents(char* filename);
-
+int _main(int argc, char* argv[],char* message);
 int main(int argc, char *argv[]) {
+    char* messageFileName = argv[1];
+    char* message = getFileContents(messageFileName);
+    while (1) {
+        _main(argc, argv,message);
+        sleep(5);
+    }
+    return 0;
+}
+
+int _main(int argc, char* argv[],char* message) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     char buffer[256];
@@ -61,16 +72,26 @@ int main(int argc, char *argv[]) {
     int port = atoi(argv[3]);
     char hostname[] = "localhost";
 
-    char* message = getFileContents(messageFileName);
-    char* key = getFileContents(keyFileName);
+    // char* message = getFileContents(messageFileName);
+    // char* key = getFileContents(keyFileName);
 
-    printf("message: %s\n", message);
-    printf("key: %s\n", key);
+    // printf("message: %s\n", message);
+    // printf("key: %s\n", key);
 
     // Create a socket
     socketFD = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFD < 0) {
         error("CLIENT: ERROR opening socket");
+    }
+
+    int yes = 1;
+    int result = setsockopt(socketFD,
+                            IPPROTO_TCP,
+                            TCP_NODELAY,
+                            (char *) &yes, 
+                            sizeof(int));    // 1 - on, 0 - off
+    if (result < 0) {
+        error("CLIENT: ERROR setting socket options");
     }
 
     // Set up the server address struct
@@ -80,21 +101,37 @@ int main(int argc, char *argv[]) {
     if (connect(socketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
         error("CLIENT: ERROR connecting");
     }
-    // Get input message from user
-    printf("CLIENT: Enter text to send to the server, and then hit enter: ");
-    // Clear out the buffer array
-    memset(buffer, '\0', sizeof(buffer));
-    // Get input from the user, trunc to buffer - 1 chars, leaving \0
-    fgets(buffer, sizeof(buffer) - 1, stdin);
-    // Remove the trailing \n that fgets adds
-    buffer[strcspn(buffer, "\n")] = '\0';
-    // message[strspn(message, "\n")] = '\0';
+    // // Get input message from user
+    // printf("CLIENT: Enter text to send to the server, and then hit enter: ");
+    // // Clear out the buffer array
+    // memset(buffer, '\0', sizeof(buffer));
+    // // Get input from the user, trunc to buffer - 1 chars, leaving \0
+    // fgets(buffer, sizeof(buffer) - 1, stdin);
+    // // Remove the trailing \n that fgets adds
+    // buffer[strcspn(buffer, "\n")] = '\0';
+    // // message[strspn(message, "\n")] = '\0';
 
-    while(1) {
+    // while(1) {
     // Send message to server
     // Write to the server
     // charsWritten = send(socketFD, buffer, strlen(buffer), 0);
-    sleep(5);
+    char header[256];
+    memset(header, '\0', sizeof(header));
+    sprintf(header, "enc_client|%d", strlen(message));
+
+    charsWritten = send(socketFD, header, strlen(header), 0);
+    if (charsWritten < 0) {
+        error("CLIENT: ERROR writing to socket");
+    } else {
+        printf("wrote: \"%s\"\n", header);
+    }
+    if (charsWritten < strlen(header)) {
+        printf("CLIENT: WARNING: Not all data written to socket!\n");
+    }
+
+    sleep(1);
+    
+
     charsWritten = send(socketFD, message, strlen(message), 0);
     if (charsWritten < 0) {
         error("CLIENT: ERROR writing to socket");
@@ -104,25 +141,28 @@ int main(int argc, char *argv[]) {
     if (charsWritten < strlen(message)) {
         printf("CLIENT: WARNING: Not all data written to socket!\n");
     }
+
     
-    }
+    // }
     // if (charsWritten < strlen(buffer)) {
     //     printf("CLIENT: WARNING: Not all data written to socket!\n");
     // }
 
     // Get return message from server
     // Clear out the buffer again for reuse
-    memset(buffer, '\0', sizeof(buffer));
+    /*
+        memset(buffer, '\0', sizeof(buffer));
     // Read data from the socket, leaving \0 at end
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0);
     if (charsRead < 0) {
         error("CLIENT: ERROR reading from socket");
     }
     printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
+    */
+
 
     // Close the socket
     close(socketFD);
-    return 0;
 }
 
 
