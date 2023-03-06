@@ -45,7 +45,7 @@ int await_next_connection(int listen_socket) {
         error("ERROR on accept");
     }
 
-    printf("SERVER(parent): Connected to client running at host %d port %d\n", ntohs(client_address.sin_addr.s_addr), ntohs(client_address.sin_port));
+    // printf("SERVER(parent): Connected to client running at host %d port %d\n", ntohs(client_address.sin_addr.s_addr), ntohs(client_address.sin_port));
 
     pid_t pid = fork();
     if (pid == -1) {
@@ -53,14 +53,14 @@ int await_next_connection(int listen_socket) {
         exit(1);
     } else if (pid == 0) {
         // Child process
-        printf("Child process started.\n");
+        // printf("Child process started.\n");
         close(listen_socket);
 
-        printf("SERVER(child): Connected to client running at host %d port %d\n", ntohs(client_address.sin_addr.s_addr), ntohs(client_address.sin_port));
+        // printf("SERVER(child): Connected to client running at host %d port %d\n", ntohs(client_address.sin_addr.s_addr), ntohs(client_address.sin_port));
         handle_connection(connection_socket);
         
 
-        printf("Child process closed.\n");
+        // printf("Child process closed.\n");
         exit(0);
     }
     // Parent process
