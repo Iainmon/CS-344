@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <assert.h>
 
+int dialog_debug = 1;
 
 void flush_socket_recv(int connection_socket) {
     char b[] = "a";
@@ -24,7 +25,7 @@ void await_send(int connection_socket, char* message) {
     int chars_written = send(connection_socket, message, message_length, 0);
     if (chars_written < 0) {
         printf("CLIENT: ERROR writing message to socket");
-    } else {
+    } else if (dialog_debug) {
         printf("wrote: \"%s\"\n", message);
     }
     if (chars_written < message_length) {
@@ -101,7 +102,7 @@ char* await_receive(int connection_socket, char *buffer, int buffer_size) {
     }
 
     // Display the message
-    printf("SERVER(child) <- \"%s\"\n", buffer);
+    if (dialog_debug) { printf("SERVER(child) <- \"%s\"\n", buffer); }
     // printf("SERVER(child) <-: \"%c\"\n", buffer[0]);
 
     // Make sure the buffer is null terminated
@@ -118,12 +119,12 @@ char* await_receive_message(int connection_socket) {
     // Parse the header
     int bar_idx = strcspn(header_buffer, "|");
     int header_size = atoi(header_buffer + bar_idx + 1);
-    printf("[header]: %d\n", header_size);
+    if (dialog_debug) { printf("[header]: %d\n", header_size); }
 
     flush_socket_send(connection_socket);
 
     char* message_buffer = await_receive(connection_socket, NULL, header_size + 1);
-    printf("[message]: %s\n", message_buffer);
+    if (dialog_debug) { printf("[message]: %s\n", message_buffer); }
 
     flush_socket_send(connection_socket);
 

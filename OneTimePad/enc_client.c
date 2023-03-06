@@ -56,10 +56,12 @@ int main(int argc, char *argv[]) {
     char* key = getFileContents(keyFileName);
     key[strcspn(key,"\r\n")] = '\0';
 
-    while (1) {
-        _main(argc, argv,message,key);
-        sleep(5);
-    }
+    dialog_debug = 0;
+    _main(argc, argv, message,key);
+    // while (1) {
+    //     _main(argc, argv,message,key);
+    //     sleep(5);
+    // }
     return 0;
 }
 
@@ -130,7 +132,8 @@ int _main(int argc, char* argv[],char* message,char* key) {
     await_send_message(socketFD, message);
     await_send_message(socketFD, key);
     char* ciphertext = await_receive_message(socketFD);
-    printf("ciphertext: %s\n", ciphertext);
+    // printf("ciphertext: %s\n", ciphertext);
+    printf("%s\n", ciphertext);
 
     /*
     char header[256];
