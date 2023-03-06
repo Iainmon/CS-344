@@ -53,14 +53,14 @@ int await_next_connection(int listen_socket) {
         exit(1);
     } else if (pid == 0) {
         // Child process
-        // printf("Child process started.\n");
+        printf("Child process started.\n");
         close(listen_socket);
 
         // printf("SERVER(child): Connected to client running at host %d port %d\n", ntohs(client_address.sin_addr.s_addr), ntohs(client_address.sin_port));
         handle_connection(connection_socket);
         
 
-        // printf("Child process closed.\n");
+        printf("Child process closed.\n");
         exit(0);
     }
     // Parent process
@@ -115,10 +115,11 @@ void dialog(int connection_socket) {
     char* plaintext = await_receive_message(connection_socket);
     char* key = await_receive_message(connection_socket);
 
-    // printf("plaintext: %s\n", plaintext);
-    // printf("key: %s\n", key);
+    printf("plaintext: %s\n", plaintext);
+    printf("key: %s\n", key);
 
     char* ciphertext = encrypt_message(plaintext, key);
+    printf("ciphertext: %s\n", ciphertext);
 
     await_send_message(connection_socket, ciphertext);
 
@@ -156,7 +157,7 @@ int main(int argc, char *argv[]) {
     listen(listenSocket, 5);
 
     char node_name[] = "enc_server";
-    int debug = 0;
+    int debug = 1;
     setup_dialog(node_name, debug);
 
     // Accept a connection, blocking if one is not available until one connects
