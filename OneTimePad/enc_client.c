@@ -57,6 +57,11 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+void flush_socket_recv(int connection_socket) {
+    char b[] = "a";
+    recv(connection_socket, b, 1, 0);
+}
+
 int _main(int argc, char* argv[],char* message) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
@@ -84,15 +89,6 @@ int _main(int argc, char* argv[],char* message) {
         error("CLIENT: ERROR opening socket");
     }
 
-    int yes = 1;
-    int result = setsockopt(socketFD,
-                            IPPROTO_TCP,
-                            TCP_NODELAY,
-                            (char *) &yes, 
-                            sizeof(int));    // 1 - on, 0 - off
-    if (result < 0) {
-        error("CLIENT: ERROR setting socket options");
-    }
 
     // Set up the server address struct
     setupAddressStruct(&serverAddress, port, hostname);
@@ -101,6 +97,18 @@ int _main(int argc, char* argv[],char* message) {
     if (connect(socketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
         error("CLIENT: ERROR connecting");
     }
+
+    // int yes = 1;
+    // int result = setsockopt(socketFD,
+    //                         IPPROTO_TCP,
+    //                         TCP_NODELAY,
+    //                         (char *) &yes, 
+    //                         sizeof(int));    // 1 - on, 0 - off
+    // if (result < 0) {
+    //     error("CLIENT: ERROR setting socket options");
+    // }
+
+
     // // Get input message from user
     // printf("CLIENT: Enter text to send to the server, and then hit enter: ");
     // // Clear out the buffer array
@@ -119,7 +127,7 @@ int _main(int argc, char* argv[],char* message) {
     memset(header, '\0', sizeof(header));
     sprintf(header, "enc_client|%d", strlen(message));
 
-    charsWritten = send(socketFD, header, strlen(header), 0);
+    charsWritten = send(socketFD, header, strlen(header),0);
     if (charsWritten < 0) {
         error("CLIENT: ERROR writing to socket");
     } else {
@@ -128,9 +136,14 @@ int _main(int argc, char* argv[],char* message) {
     if (charsWritten < strlen(header)) {
         printf("CLIENT: WARNING: Not all data written to socket!\n");
     }
+    // write(socketFD, header, strlen(header));
+    // // fflush(socketFD);
+    // write(socketFD, message, strlen(message));
 
-    sleep(1);
-    
+
+    // sleep(1);
+    // fflush(socketFD);
+    flush_socket_recv(socketFD);
 
     charsWritten = send(socketFD, message, strlen(message), 0);
     if (charsWritten < 0) {

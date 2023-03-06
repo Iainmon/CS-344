@@ -137,6 +137,11 @@ char* await_receive(int connection_socket, char *buffer, int buffer_size) {
     return buffer;
 }
 
+void flush_socket_send(int connection_socket) {
+    char b[] = "a";
+    send(connection_socket, b, 1, 0);
+}
+
 void dialog(int connection_socket) {
     int header_max_size = 256;
     char* header_buffer = await_receive(connection_socket, NULL, header_max_size);
@@ -147,6 +152,7 @@ void dialog(int connection_socket) {
     int header_size = atoi(header_buffer + bar_idx + 1);
     printf("Header size: %d\n", header_size);
 
+    flush_socket_send(connection_socket);
 
     char* message_buffer = await_receive(connection_socket, NULL, header_size + 1);
     printf("Message: %s\n", message_buffer);
@@ -185,16 +191,16 @@ int main(int argc, char *argv[]) {
     // Accept a connection, blocking if one is not available until one connects
     while (1) {
         int pid = await_next_connection(listenSocket);
-        for (int i = 0; i <= 5; i++) {
-            if (i == 5) {
-                printf("Too many connections, pool is full. Need to clean up. \n");
-                exit(1);
-            }
-            if (fork_pids[i] == 0) {
-                fork_pids[i] = pid;
-                break;
-            }
-        }
+        // for (int i = 0; i <= 5; i++) {
+        //     if (i == 5) {
+        //         printf("Too many connections, pool is full. Need to clean up. \n");
+        //         exit(1);
+        //     }
+        //     if (fork_pids[i] == 0) {
+        //         fork_pids[i] = pid;
+        //         break;
+        //     }
+        // }
     
         /*
         // Accept the connection request which creates a connection socket
