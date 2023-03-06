@@ -19,7 +19,8 @@
 
 // Error function used for reporting issues
 void error(const char *msg) {
-    perror(msg);
+    // perror(msg);
+    fprintf(stderr, "%s", msg);
     exit(0);
 }
 
@@ -56,7 +57,15 @@ int main(int argc, char *argv[]) {
     char* key = getFileContents(keyFileName);
     key[strcspn(key,"\r\n")] = '\0';
 
-    dialog_debug = 0;
+    if (strlen(message) > strlen(key)) {
+        fprintf(stderr, "Error: The key is too short to encrypt this message.\n");
+        exit(1);
+    }
+
+    char node_name[] = "enc_client";
+    int debug = 0;
+    setup_dialog(node_name, debug);
+
     _main(argc, argv, message,key);
     // while (1) {
     //     _main(argc, argv,message,key);
@@ -129,6 +138,12 @@ int _main(int argc, char* argv[],char* message,char* key) {
     // Write to the server
     // charsWritten = send(socketFD, buffer, strlen(buffer), 0);
     
+    await_send_message(socketFD, "enc_client hello");
+    char* response = await_receive_message(socketFD);
+    if (strcmp(response, "enc_server hello") != 0) {
+        error("Error: encryption server could not be validated.\n");
+    }
+
     await_send_message(socketFD, message);
     await_send_message(socketFD, key);
     char* ciphertext = await_receive_message(socketFD);
@@ -190,6 +205,7 @@ int _main(int argc, char* argv[],char* message,char* key) {
 
     // Close the socket
     close(socketFD);
+    return 0;
 }
 
 

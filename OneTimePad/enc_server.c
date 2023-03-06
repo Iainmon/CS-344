@@ -103,17 +103,25 @@ void handle_connection(int connection_socket) {
 
 
 void dialog(int connection_socket) {
-    char* plaintext = await_receive_message(connection_socket);
 
+    char* client_hello = await_receive_message(connection_socket);
+    if (strcmp(client_hello, "enc_client hello") != 0) {
+        fprintf(stderr,"Client did not say hello. Closing connection.\n");
+        close(connection_socket);
+        exit(1);
+    }
+    await_send_message(connection_socket, "enc_server hello");
+
+    char* plaintext = await_receive_message(connection_socket);
     char* key = await_receive_message(connection_socket);
 
-    printf("plaintext: %s\n", plaintext);
-    printf("key: %s\n", key);
+    // printf("plaintext: %s\n", plaintext);
+    // printf("key: %s\n", key);
 
     char* ciphertext = encrypt_message(plaintext, key);
 
     await_send_message(connection_socket, ciphertext);
-    
+
 
 
 }
@@ -146,6 +154,10 @@ int main(int argc, char *argv[]) {
 
     // Start listening for connetions. Allow up to 5 connections to queue up
     listen(listenSocket, 5);
+
+    char node_name[] = "enc_server";
+    int debug = 0;
+    setup_dialog(node_name, debug);
 
     // Accept a connection, blocking if one is not available until one connects
     while (1) {

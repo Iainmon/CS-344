@@ -8,6 +8,12 @@
 #include <assert.h>
 
 int dialog_debug = 1;
+char* _node_name = NULL;
+
+void setup_dialog(char* name, int _dialog_debug) {
+    _node_name = name;
+    dialog_debug = _dialog_debug;
+}
 
 void flush_socket_recv(int connection_socket) {
     char b[] = "a";
@@ -39,7 +45,7 @@ void await_send_message(int connection_socket, char* message) {
 
     char header[256];
     memset(header, '\0', sizeof(header));
-    sprintf(header, "enc_client|%d", strlen(message));
+    sprintf(header, "%s|%d", _node_name, (int)strlen(message));
 
     await_send(connection_socket, header);
     await_send(connection_socket, message);
