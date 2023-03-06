@@ -103,12 +103,12 @@ char* await_receive(int connection_socket, char *buffer, int buffer_size) {
     // Get the message from the client
     int chars_read = recv(connection_socket, buffer, buffer_size - 1, 0);
     if (chars_read < 0) {
-        printf("ERROR reading from socket");
-        // exit(1);
+        fprintf(stderr,"ERROR reading from socket\n");
+        exit(1);
     }
 
     // Display the message
-    if (dialog_debug) { printf("SERVER(child) <- \"%s\"\n", buffer); }
+    // if (dialog_debug) { printf("SERVER(child) <- \"%s\"\n", buffer); }
     // printf("SERVER(child) <-: \"%c\"\n", buffer[0]);
 
     // Make sure the buffer is null terminated
@@ -130,7 +130,7 @@ char* await_receive_message(int connection_socket) {
     flush_socket_send(connection_socket);
 
     char* message_buffer = await_receive(connection_socket, NULL, header_size + 1);
-    if (dialog_debug) { printf("[message]: %s\n", message_buffer); }
+    // if (dialog_debug) { printf("[message]: %s\n", message_buffer); }
 
     flush_socket_send(connection_socket);
 

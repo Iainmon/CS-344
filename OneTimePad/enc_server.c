@@ -115,8 +115,8 @@ void dialog(int connection_socket) {
     char* plaintext = await_receive_message(connection_socket);
     char* key = await_receive_message(connection_socket);
 
-    printf("plaintext: %s\n", plaintext);
-    printf("key: %s\n", key);
+    // printf("plaintext: %s\n", plaintext);
+    // printf("key: %s\n", key);
 
     char* ciphertext = encrypt_message(plaintext, key);
     printf("ciphertext: %s\n", ciphertext);
