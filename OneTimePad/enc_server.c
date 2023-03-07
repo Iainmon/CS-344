@@ -127,7 +127,7 @@ void dialog(int connection_socket) {
     usleep(FLUSH_DELAY + strlen(ciphertext) * 2);
     await_send_message(connection_socket, ciphertext);
 
-
+ 
 }
 
 int main(int argc, char *argv[]) {
