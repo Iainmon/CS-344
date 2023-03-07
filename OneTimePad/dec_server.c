@@ -9,7 +9,6 @@
 #include "otp.c"
 #include "dialog.c"
 
-pid_t fork_pids[5] = {0, 0, 0, 0, 0};
 
 
 // Error function used for reporting issues
@@ -53,14 +52,12 @@ int await_next_connection(int listen_socket) {
         exit(1);
     } else if (pid == 0) {
         // Child process
-        printf("Child process started.\n");
-        // close(listen_socket);
+        printf("[dec_server]: Child process started.\n");
 
-        // printf("SERVER(child): Connected to client running at host %d port %d\n", ntohs(client_address.sin_addr.s_addr), ntohs(client_address.sin_port));
+        // Handle the connection
         handle_connection(connection_socket);
         
-
-        printf("Child process closed.\n");
+        printf("[dec_server]: Child process closed.\n");
         exit(0);
     }
     // Parent process
@@ -71,63 +68,45 @@ int await_next_connection(int listen_socket) {
 
 void dialog(int connection_socket);
 
+// Handle the connection, this just dispatches to the dialog function
 void handle_connection(int connection_socket) {
-    char buffer[MAX_BUFFER_SIZE];
 
     dialog(connection_socket);
 
-/*
-    // Get the message from the client and display it
-    memset(buffer, '\0', MAX_BUFFER_SIZE);
-    int chars_read = recv(connection_socket, buffer, MAX_BUFFER_SIZE - 1, 0);
-    if (chars_read < 0) {
-        perror("ERROR reading from socket");
-    }
-    printf("SERVER(child): I received this from the client: \"%s\"\n", buffer);
-
-    // Send a Success message back to the client and close the connection
-    chars_read = send(connection_socket, "I am the server, and I got your message", 39, 0);
-    if (chars_read < 0) {
-        perror("ERROR writing to socket");
-    }
-*/
-
-    // Close the connection socket for this client
-
-
     close(connection_socket);
-
 }
-
-
 
 
 void dialog(int connection_socket) {
 
+    // Make sure client is dec_client
+
     char* client_hello = await_receive_message(connection_socket);
     if (strcmp(client_hello, "dec_client hello") != 0) {
-        printf("Client did not say hello. Closing connection.\n");
+        fprintf(stderr,"[dec_server]: Client did not say hello. Closing connection.\n");
         await_send_message(connection_socket, "dec_server hello");
+        usleep(100000);
         close(connection_socket);
         exit(1);
     }
-    printf("Client said hello.\n");
+    printf("[dec_server]: Client said hello.\n");
     await_send_message(connection_socket, "dec_server hello");
 
+    // retrieve the ciphertext and key
     char* ciphertext = await_receive_message(connection_socket);
     char* key = await_receive_message(connection_socket);
 
-    // printf("plaintext: %s\n", plaintext);
-    // printf("key: %s\n", key);
-
+    // decrypt the message
     char* plaintext = decrypt_message(ciphertext, key);
 
-    printf("plaintext length: %d, key length: %d, ciphertext length: %d\n", strlen(plaintext), strlen(key), strlen(ciphertext));
-    // printf("ciphertext: %s\n", ciphertext);
-    // flush_socket_recv(connection_socket);
-    usleep(FLUSH_DELAY + strlen(plaintext) * 2);
-    await_send_message(connection_socket, plaintext);
+    // output the paintext message
+    printf("[dec_server]: plaintext length: %d, key length: %d, ciphertext length: %d\n", strlen(plaintext), strlen(key), strlen(ciphertext));
 
+    // flush the socket
+    usleep(FLUSH_DELAY + strlen(plaintext) * 2);
+
+    // send the plaintext
+    await_send_message(connection_socket, plaintext);
  
 }
 
@@ -160,50 +139,15 @@ int main(int argc, char *argv[]) {
     // Start listening for connetions. Allow up to 5 connections to queue up
     listen(listenSocket, 5);
 
+    // Name the node and start the dialog
     char node_name[] = "dec_server";
     int debug = 0;
     setup_dialog(node_name, debug);
 
     // Accept a connection, blocking if one is not available until one connects
     while (1) {
+        // continuously fork and wait for connections
         int pid = await_next_connection(listenSocket);
-        // for (int i = 0; i <= 5; i++) {
-        //     if (i == 5) {
-        //         printf("Too many connections, pool is full. Need to clean up. \n");
-        //         exit(1);
-        //     }
-        //     if (fork_pids[i] == 0) {
-        //         fork_pids[i] = pid;
-        //         break;
-        //     }
-        // }
-    
-        /*
-        // Accept the connection request which creates a connection socket
-        connectionSocket = accept(listenSocket, (struct sockaddr *)&clientAddress, &sizeOfClientInfo);
-        if (connectionSocket < 0) {
-            error("ERROR on accept");
-        }
-
-        printf("SERVER: Connected to client running at host %d port %d\n", ntohs(clientAddress.sin_addr.s_addr), ntohs(clientAddress.sin_port));
-
-        // Get the message from the client and display it
-        memset(buffer, '\0', 256);
-        // Read the client's message from the socket
-        charsRead = recv(connectionSocket, buffer, 255, 0);
-        if (charsRead < 0) {
-            error("ERROR reading from socket");
-        }
-        printf("SERVER: I received this from the client: \"%s\"\n", buffer);
-        sleep(2);
-        // Send a Success message back to the client
-        charsRead = send(connectionSocket, "I am the server, and I got your message", 39, 0);
-        if (charsRead < 0) {
-            error("ERROR writing to socket");
-        }
-        // Close the connection socket for this client
-        close(connectionSocket);
-    */
     }
 
 

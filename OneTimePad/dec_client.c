@@ -47,7 +47,7 @@ void setupAddressStruct(struct sockaddr_in *address, int portNumber, char *hostn
 
 // Returns the contents of the file as a string
 char* getFileContents(char* filename);
-int _main(int argc, char* argv[],char* message,char* key);
+
 int main(int argc, char *argv[]) {
 
     char* messageFileName = argv[1];
@@ -67,28 +67,16 @@ int main(int argc, char *argv[]) {
     int debug = 0;
     setup_dialog(node_name, debug);
 
-    _main(argc, argv, message,key);
-    // while (1) {
-    //     _main(argc, argv,message,key);
-    //     sleep(5);
-    // }
-    return 0;
-}
-
-
-
-int _main(int argc, char* argv[],char* message,char* key) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     char buffer[256];
+
     // Check usage & args
     if (argc < 4) {
         fprintf(stderr, "USAGE: %s hostname port\n", argv[0]);
         exit(0);
     }
-    
-    char* messageFileName = argv[1];
-    char* keyFileName = argv[2];
+
     int port = atoi(argv[3]);
     char hostname[] = "localhost";
 
@@ -107,24 +95,31 @@ int _main(int argc, char* argv[],char* message,char* key) {
         error("CLIENT: ERROR connecting");
     }
 
+    // make sure the server is the decryption server
     await_send_message(socketFD, "dec_client hello");
     char* response = await_receive_message(socketFD);
     if (strcmp(response, "dec_server hello") != 0) {
         fprintf(stderr,"Error: decryption server could not be validated. Response: %s\n",response);
         usleep(100000);
-        // printf("Error: encryption server could not be validated. Response: %s\n",response);
         exit(1);
     }
 
+    // Send message to server
     await_send_message(socketFD, message);
+
+    // Send key to server
     await_send_message(socketFD, key);
+
+    // flush the buffer and get the plaintext from the server
     usleep(FLUSH_DELAY + strlen(message) * 2);
     char* plaintext = await_receive_message(socketFD);
-    // printf("ciphertext: %s\n", ciphertext);
+
+    // Print the plaintext
     printf("%s\n", plaintext);
 
     // Close the socket
     close(socketFD);
+
     return 0;
 }
 

@@ -43,17 +43,9 @@ int main(int argc, char *argv[]) {
         nums[i] = c;
         i++;
     }
+    // print the key
     printf("%s\n", nums);
 
-    // char* key = nums;
-    // char* message = "HELLO WORLD";
-
-    // char* encrypted = encrypt(message, key);
-    // char* decrypted = decrypt(encrypted, key);
-
-    // printf("msg: %s\n", message);
-    // printf("enc: %s\n", encrypted);
-    // printf("dec: %s\n", decrypted);
 
     return 0;
 }

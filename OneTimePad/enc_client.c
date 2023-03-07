@@ -67,17 +67,6 @@ int main(int argc, char *argv[]) {
     int debug = 0;
     setup_dialog(node_name, debug);
 
-    _main(argc, argv, message,key);
-    // while (1) {
-    //     _main(argc, argv,message,key);
-    //     sleep(5);
-    // }
-    return 0;
-}
-
-
-
-int _main(int argc, char* argv[],char* message,char* key) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     char buffer[256];
@@ -87,8 +76,6 @@ int _main(int argc, char* argv[],char* message,char* key) {
         exit(0);
     }
     
-    char* messageFileName = argv[1];
-    char* keyFileName = argv[2];
     int port = atoi(argv[3]);
     char hostname[] = "localhost";
 
@@ -107,24 +94,38 @@ int _main(int argc, char* argv[],char* message,char* key) {
         error("CLIENT: ERROR connecting");
     }
 
+    // make sure the server is the encryption server
     await_send_message(socketFD, "enc_client hello");
     char* response = await_receive_message(socketFD);
     if (strcmp(response, "enc_server hello") != 0) {
         fprintf(stderr,"Error: encryption server could not be validated. Response: %s\n",response);
         usleep(100000);
-        // printf("Error: encryption server could not be validated. Response: %s\n",response);
         exit(1);
     }
 
+    // send the message to the server
     await_send_message(socketFD, message);
+
+    // send the key to the server
     await_send_message(socketFD, key);
+
+    // flush the buffer and get the ciphertext from the server
     usleep(FLUSH_DELAY + strlen(message) * 2);
     char* ciphertext = await_receive_message(socketFD);
-    // printf("ciphertext: %s\n", ciphertext);
+
+    // print the ciphertext
     printf("%s\n", ciphertext);
 
     // Close the socket
     close(socketFD);
+
+    return 0;
+}
+
+
+
+int _main(int argc, char* argv[],char* message,char* key) {
+
     return 0;
 }
 
