@@ -124,7 +124,7 @@ void dialog(int connection_socket) {
     printf("plaintext length: %d, key length: %d, ciphertext length: %d\n", strlen(plaintext), strlen(key), strlen(ciphertext));
     // printf("ciphertext: %s\n", ciphertext);
     // flush_socket_recv(connection_socket);
-    usleep(FLUSH_DELAY + strlen(ciphertext));
+    usleep(FLUSH_DELAY + strlen(ciphertext) * 2);
     await_send_message(connection_socket, ciphertext);
 
 
