@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
     char* keyFileName = argv[2];
     char* key = getFileContents(keyFileName);
-    key[strcspn(key,"\r\n")] = '\0';
+    // key[strcspn(key,"\r\n")] = '\0';
 
     if (strlen(message) > strlen(key)) {
         fprintf(stderr, "Error: The key is too short to encrypt this message.\n");
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     }
 
     char node_name[] = "enc_client";
-    int debug = 1;
+    int debug = 0;
     setup_dialog(node_name, debug);
 
     _main(argc, argv, message,key);
@@ -116,6 +116,7 @@ int _main(int argc, char* argv[],char* message,char* key) {
 
     await_send_message(socketFD, message);
     await_send_message(socketFD, key);
+    usleep(5000 + strlen(message));
     char* ciphertext = await_receive_message(socketFD);
     // printf("ciphertext: %s\n", ciphertext);
     printf("%s\n", ciphertext);

@@ -116,13 +116,15 @@ void dialog(int connection_socket) {
     char* plaintext = await_receive_message(connection_socket);
     char* key = await_receive_message(connection_socket);
 
-    printf("plaintext: %s\n", plaintext);
+    // printf("plaintext: %s\n", plaintext);
     // printf("key: %s\n", key);
 
     char* ciphertext = encrypt_message(plaintext, key);
-    printf("ciphertext: %s\n", ciphertext);
+
+    printf("plaintext length: %d, key length: %d, ciphertext length: %d\n", strlen(plaintext), strlen(key), strlen(ciphertext));
+    // printf("ciphertext: %s\n", ciphertext);
     // flush_socket_recv(connection_socket);
-    usleep(FLUSH_DELAY);
+    usleep(FLUSH_DELAY + strlen(ciphertext));
     await_send_message(connection_socket, ciphertext);
 
 
@@ -158,7 +160,7 @@ int main(int argc, char *argv[]) {
     listen(listenSocket, 5);
 
     char node_name[] = "enc_server";
-    int debug = 1;
+    int debug = 0;
     setup_dialog(node_name, debug);
 
     // Accept a connection, blocking if one is not available until one connects

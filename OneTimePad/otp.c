@@ -43,10 +43,10 @@ char* encrypt_message(char* message, char* key) {
     int key_size = strlen(key);
 
     // Check that the key is long enough
-    if (message_size > key_size) {
-        fprintf(stderr, "Key is too short to encrypt this message.\n");
-        exit(1);
-    }
+    // if (message_size > key_size) {
+    //     fprintf(stderr, "Key is too short to encrypt this message.\n");
+    //     exit(1);
+    // }
 
     // Allocate memory for the encrypted message
     char* encrypted = malloc(message_size + 1);
