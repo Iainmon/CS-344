@@ -54,7 +54,7 @@ int await_next_connection(int listen_socket) {
     } else if (pid == 0) {
         // Child process
         printf("Child process started.\n");
-        close(listen_socket);
+        // close(listen_socket);
 
         // printf("SERVER(child): Connected to client running at host %d port %d\n", ntohs(client_address.sin_addr.s_addr), ntohs(client_address.sin_port));
         handle_connection(connection_socket);
@@ -117,13 +117,13 @@ void dialog(int connection_socket) {
     char* key = await_receive_message(connection_socket);
 
     printf("plaintext: %s\n", plaintext);
-    printf("key: %s\n", key);
+    // printf("key: %s\n", key);
 
     char* ciphertext = encrypt_message(plaintext, key);
     printf("ciphertext: %s\n", ciphertext);
-
+    // flush_socket_recv(connection_socket);
+    usleep(FLUSH_DELAY);
     await_send_message(connection_socket, ciphertext);
-
 
 
 }

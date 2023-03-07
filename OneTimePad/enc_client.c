@@ -115,7 +115,6 @@ int _main(int argc, char* argv[],char* message,char* key) {
     }
 
     await_send_message(socketFD, message);
-    // flush_socket_recv(socketFD);
     await_send_message(socketFD, key);
     char* ciphertext = await_receive_message(socketFD);
     // printf("ciphertext: %s\n", ciphertext);

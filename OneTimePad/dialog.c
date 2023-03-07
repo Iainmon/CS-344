@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <assert.h>
 
+#define FLUSH_DELAY 5000
+
 int dialog_debug = 1;
 char* _node_name = NULL;
 
@@ -18,11 +20,15 @@ void setup_dialog(char* name, int _dialog_debug) {
 }
 
 void flush_socket_recv(int connection_socket) {
+    usleep(FLUSH_DELAY);
+    return;
     char b[] = "a";
     recv(connection_socket, b, 1, 0);
 }
 
 void flush_socket_send(int connection_socket) {
+    usleep(FLUSH_DELAY);
+    return;
     char b[] = "a";
     send(connection_socket, b, 1, 0);
 }
@@ -57,6 +63,7 @@ void await_send_message(int connection_socket, char* message) {
 
     await_send(connection_socket, header);
     flush_socket_recv(connection_socket);
+
     await_send(connection_socket, message);
     flush_socket_recv(connection_socket);
 
