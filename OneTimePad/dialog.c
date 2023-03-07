@@ -66,6 +66,7 @@ void await_send_message(int connection_socket, char* message) {
 
     await_send(connection_socket, message);
     flush_socket_recv(connection_socket);
+    usleep(5000 + strlen(message));
 
     // int chars_written = send(connection_socket, header, strlen(header),0);
     // if (chars_written < 0) {
@@ -147,6 +148,7 @@ char* await_receive_message(int connection_socket) {
 
     flush_socket_send(connection_socket);
 
+    usleep(5000 + header_size);
     char* message_buffer = await_receive(connection_socket, NULL, header_size + 1);
     if (dialog_debug) { printf("[message]: %s\n", message_buffer); }
 
