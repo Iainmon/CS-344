@@ -10,6 +10,8 @@
 int dialog_debug = 1;
 char* _node_name = NULL;
 
+int last_sent = 0;
+
 void setup_dialog(char* name, int _dialog_debug) {
     _node_name = name;
     dialog_debug = _dialog_debug;
@@ -27,6 +29,8 @@ void flush_socket_send(int connection_socket) {
 
 
 void await_send(int connection_socket, char* message) {
+
+
     int message_length = strlen(message);
     int chars_written = send(connection_socket, message, message_length, 0);
     if (chars_written < 0) {
@@ -37,8 +41,12 @@ void await_send(int connection_socket, char* message) {
     if (chars_written < message_length) {
         printf("CLIENT: WARNING: Not all message data written to socket!\n");
     }
-
-    flush_socket_recv(connection_socket);
+    // flush_socket_recv(connection_socket);
+    // if (last_sent > 0) {
+    //     flush_socket_recv(connection_socket);
+    //     last_sent = 1;
+    // }
+    
 }
 
 void await_send_message(int connection_socket, char* message) {
@@ -48,7 +56,9 @@ void await_send_message(int connection_socket, char* message) {
     sprintf(header, "%s|%d", _node_name, (int)strlen(message));
 
     await_send(connection_socket, header);
+    flush_socket_recv(connection_socket);
     await_send(connection_socket, message);
+    flush_socket_recv(connection_socket);
 
     // int chars_written = send(connection_socket, header, strlen(header),0);
     // if (chars_written < 0) {
@@ -106,9 +116,10 @@ char* await_receive(int connection_socket, char *buffer, int buffer_size) {
         fprintf(stderr,"ERROR reading from socket\n");
         exit(1);
     }
+    last_sent = 0;
 
     // Display the message
-    // if (dialog_debug) { printf("SERVER(child) <- \"%s\"\n", buffer); }
+    if (dialog_debug) { printf("SERVER(child) <- \"%s\"\n", buffer); }
     // printf("SERVER(child) <-: \"%c\"\n", buffer[0]);
 
     // Make sure the buffer is null terminated
@@ -130,7 +141,7 @@ char* await_receive_message(int connection_socket) {
     flush_socket_send(connection_socket);
 
     char* message_buffer = await_receive(connection_socket, NULL, header_size + 1);
-    // if (dialog_debug) { printf("[message]: %s\n", message_buffer); }
+    if (dialog_debug) { printf("[message]: %s\n", message_buffer); }
 
     flush_socket_send(connection_socket);
 

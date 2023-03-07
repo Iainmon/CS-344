@@ -106,17 +106,18 @@ void dialog(int connection_socket) {
 
     char* client_hello = await_receive_message(connection_socket);
     if (strcmp(client_hello, "enc_client hello") != 0) {
-        fprintf(stderr,"Client did not say hello. Closing connection.\n");
+        printf("Client did not say hello. Closing connection.\n");
         close(connection_socket);
         exit(1);
     }
+    printf("Client said hello.\n");
     await_send_message(connection_socket, "enc_server hello");
 
     char* plaintext = await_receive_message(connection_socket);
     char* key = await_receive_message(connection_socket);
 
-    // printf("plaintext: %s\n", plaintext);
-    // printf("key: %s\n", key);
+    printf("plaintext: %s\n", plaintext);
+    printf("key: %s\n", key);
 
     char* ciphertext = encrypt_message(plaintext, key);
     printf("ciphertext: %s\n", ciphertext);

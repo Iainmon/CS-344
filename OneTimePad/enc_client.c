@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
 
     char* messageFileName = argv[1];
     char* message = getFileContents(messageFileName);
+    message[strcspn(message,"\r\n")] = '\0';
 
     char* keyFileName = argv[2];
     char* key = getFileContents(keyFileName);
@@ -63,7 +64,7 @@ int main(int argc, char *argv[]) {
     }
 
     char node_name[] = "enc_client";
-    int debug = 0;
+    int debug = 1;
     setup_dialog(node_name, debug);
 
     _main(argc, argv, message,key);
@@ -91,12 +92,6 @@ int _main(int argc, char* argv[],char* message,char* key) {
     int port = atoi(argv[3]);
     char hostname[] = "localhost";
 
-    // char* message = getFileContents(messageFileName);
-    // char* key = getFileContents(keyFileName);
-
-    // printf("message: %s\n", message);
-    // printf("key: %s\n", key);
-
     // Create a socket
     socketFD = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFD < 0) {
@@ -112,96 +107,19 @@ int _main(int argc, char* argv[],char* message,char* key) {
         error("CLIENT: ERROR connecting");
     }
 
-    // int yes = 1;
-    // int result = setsockopt(socketFD,
-    //                         IPPROTO_TCP,
-    //                         TCP_NODELAY,
-    //                         (char *) &yes, 
-    //                         sizeof(int));    // 1 - on, 0 - off
-    // if (result < 0) {
-    //     error("CLIENT: ERROR setting socket options");
-    // }
-
-
-    // // Get input message from user
-    // printf("CLIENT: Enter text to send to the server, and then hit enter: ");
-    // // Clear out the buffer array
-    // memset(buffer, '\0', sizeof(buffer));
-    // // Get input from the user, trunc to buffer - 1 chars, leaving \0
-    // fgets(buffer, sizeof(buffer) - 1, stdin);
-    // // Remove the trailing \n that fgets adds
-    // buffer[strcspn(buffer, "\n")] = '\0';
-    // // message[strspn(message, "\n")] = '\0';
-
-    // while(1) {
-    // Send message to server
-    // Write to the server
-    // charsWritten = send(socketFD, buffer, strlen(buffer), 0);
-    
     await_send_message(socketFD, "enc_client hello");
     char* response = await_receive_message(socketFD);
     if (strcmp(response, "enc_server hello") != 0) {
-        error("Error: encryption server could not be validated.\n");
+        printf("Error: encryption server could not be validated. Response: %s\n",response);
+        exit(1);
     }
 
     await_send_message(socketFD, message);
+    // flush_socket_recv(socketFD);
     await_send_message(socketFD, key);
     char* ciphertext = await_receive_message(socketFD);
     // printf("ciphertext: %s\n", ciphertext);
     printf("%s\n", ciphertext);
-
-    /*
-    char header[256];
-    memset(header, '\0', sizeof(header));
-    sprintf(header, "enc_client|%d", strlen(message));
-
-    charsWritten = send(socketFD, header, strlen(header),0);
-    if (charsWritten < 0) {
-        error("CLIENT: ERROR writing to socket");
-    } else {
-        printf("wrote: \"%s\"\n", header);
-    }
-    if (charsWritten < strlen(header)) {
-        printf("CLIENT: WARNING: Not all data written to socket!\n");
-    }
-    */
-    // write(socketFD, header, strlen(header));
-    // // fflush(socketFD);
-    // write(socketFD, message, strlen(message));
-
-
-    // sleep(1);
-    // fflush(socketFD);
-    // flush_socket_recv(socketFD);
-    /*
-    charsWritten = send(socketFD, message, strlen(message), 0);
-    if (charsWritten < 0) {
-        error("CLIENT: ERROR writing to socket");
-    } else {
-        printf("wrote: \"%s\"\n", message);
-    }
-    if (charsWritten < strlen(message)) {
-        printf("CLIENT: WARNING: Not all data written to socket!\n");
-    }
-
-    */
-    // }
-    // if (charsWritten < strlen(buffer)) {
-    //     printf("CLIENT: WARNING: Not all data written to socket!\n");
-    // }
-
-    // Get return message from server
-    // Clear out the buffer again for reuse
-    /*
-        memset(buffer, '\0', sizeof(buffer));
-    // Read data from the socket, leaving \0 at end
-    charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0);
-    if (charsRead < 0) {
-        error("CLIENT: ERROR reading from socket");
-    }
-    printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
-    */
-
 
     // Close the socket
     close(socketFD);
