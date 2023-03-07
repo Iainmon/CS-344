@@ -107,6 +107,7 @@ void dialog(int connection_socket) {
     char* client_hello = await_receive_message(connection_socket);
     if (strcmp(client_hello, "enc_client hello") != 0) {
         printf("Client did not say hello. Closing connection.\n");
+        await_send_message(connection_socket, "enc_server hello");
         close(connection_socket);
         exit(1);
     }

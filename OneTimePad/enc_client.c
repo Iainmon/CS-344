@@ -110,7 +110,9 @@ int _main(int argc, char* argv[],char* message,char* key) {
     await_send_message(socketFD, "enc_client hello");
     char* response = await_receive_message(socketFD);
     if (strcmp(response, "enc_server hello") != 0) {
-        printf("Error: encryption server could not be validated. Response: %s\n",response);
+        fprintf(stderr,"Error: encryption server could not be validated. Response: %s\n",response);
+        usleep(100000);
+        // printf("Error: encryption server could not be validated. Response: %s\n",response);
         exit(1);
     }
 
