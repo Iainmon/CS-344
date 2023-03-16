@@ -86,6 +86,7 @@ char* buffer_get(struct thread_buffer* tb) {
 
 
 struct thread_buffer* tb_1;
+struct thread_buffer* tb_2;
 
 
 void* input_thread() {
@@ -104,9 +105,26 @@ void* input_thread() {
     return NULL;
 }
 
+void* line_separator_thread() {
+
+    while (1) {
+        char* line = buffer_get(tb_1);
+        int length = strlen(line);
+
+        for (int i = 0; i < length; i++) {
+            char c = line[i];
+            if (c == '\n') { line[i] = ' '; }
+        }
+
+        buffer_put(tb_2, line);
+    }
+    return NULL;
+}
+
+
 void* output_thread() {
     for (int i = 0; i < 10; i++) {
-        char* item = buffer_get(tb_1);
+        char* item = buffer_get(tb_2);
         printf("\n[output]: %s \n", item);
     }
     return NULL;
@@ -119,11 +137,15 @@ int main(int argv, char** argc) {
     pthread_t output_t;
 
     tb_1 = init_thread_buffer();
+    tb_2 = init_thread_buffer();
+
 
     pthread_create(&input_t, NULL, input_thread, NULL);
+    pthread_create(&output_t, NULL, line_separator_thread, NULL);
     pthread_create(&output_t, NULL, output_thread, NULL);
 
     pthread_join(input_t, NULL);
+    pthread_join(line_separator_thread, NULL);
     pthread_join(output_t, NULL);
 
     return 0;
